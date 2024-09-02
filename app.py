@@ -13,8 +13,11 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app)
 
-#nlp = spacy.load("es_core_news_sm")
-nlp = spacy.load("es_dep_news_trf")
+nlp = spacy.load("es_core_news_sm")
+#nlp = spacy.load("es_dep_news_trf")
+
+# lista de palabras claves para detectar urgency
+PATTERNS_URGENCY = ["limita","últi","sol", "apur","pierd","perd","ahora","ya","hoy","grat"]
 
 # First person verb matcher
 first_person_matcher = Matcher(nlp.vocab)
@@ -39,7 +42,7 @@ examples_list = json.loads(examples_str)
 def hello_world():
     sentences = []
     tokens = request.get_json().get('tokens')
-    tokens.extend(examples_list)
+    #tokens.extend(examples_list)
     for token in tokens:
         sentences.extend(check_text(token))
     return sentences
@@ -56,5 +59,24 @@ def check_text(text):
         negation_matches = negation_matcher(span.sent, as_spans=True)
         # Si hay muchos "no" en la oración, me quedo con el primero
         if negation_matches:
-            sentences.append(negation_matches[0].sent.text)
+            sentences.append({
+                "text": negation_matches[0].sent.text,
+                "pattern": "SHAMING"
+                })
+    if detect_urgency(doc, PATTERNS_URGENCY):
+        print(text)
+        sentences.append({
+            "text": text,
+            "pattern": "URGENCY"
+            })
     return sentences
+
+
+
+def detect_urgency(doc,p):
+    for token in doc:
+        if(token.pos_ != "PUNCT"):
+            for patron in p:
+                if patron in token.text.lower():
+                    return True
+    return False
