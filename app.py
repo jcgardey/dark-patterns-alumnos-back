@@ -42,7 +42,7 @@ examples_list = json.loads(examples_str)
 def hello_world():
     sentences = []
     tokens = request.get_json().get('tokens')
-    #tokens.extend(examples_list)
+    tokens.extend(examples_list)
     for token in tokens:
         sentences.extend(check_text(token))
     return sentences
@@ -50,6 +50,10 @@ def hello_world():
 
 def check_text(text):
     doc = nlp(text)
+    """
+    for token in doc:
+        print(token.text, token.dep_, token.pos_)
+        """
     # Match first person verbs
     first_person_matches = first_person_matcher(doc, as_spans=True)
 
@@ -63,12 +67,14 @@ def check_text(text):
                 "text": negation_matches[0].sent.text,
                 "pattern": "SHAMING"
                 })
+            """
     if detect_urgency(doc, PATTERNS_URGENCY):
         print(text)
         sentences.append({
             "text": text,
             "pattern": "URGENCY"
             })
+            """
     return sentences
 
 
