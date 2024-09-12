@@ -58,6 +58,12 @@ def check_text(text):
     first_person_matches = first_person_matcher(doc, as_spans=True)
 
     sentences = []
+    if first_person_matches:
+        sentences.append({
+            "text": first_person_matches[0].sent.text,
+            "pattern": "SHAMING"
+            })
+    """
     for span in first_person_matches:
         print(span.sent.text, span.text, span.label_)
         negation_matches = negation_matcher(span.sent, as_spans=True)
@@ -67,7 +73,6 @@ def check_text(text):
                 "text": negation_matches[0].sent.text,
                 "pattern": "SHAMING"
                 })
-            """
     if detect_urgency(doc, PATTERNS_URGENCY):
         print(text)
         sentences.append({
