@@ -23,13 +23,19 @@ PATTERNS_URGENCY = ["limita","últi","sol", "apur","pierd","perd","ahora","ya","
 first_person_matcher = Matcher(nlp.vocab)
 first_person_verb_pattern = [
         # Verbos en primer persona
-        [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1"]}}],
+        [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}],
         # Oraciones del tipo "Soy una mala persona". Detecta "Soy"
-        [{"DEP": "cop", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1"]}}],
+        [{"DEP": "cop", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}],
         # Oraciones del tipo "Me gusta...". Detecta "Me" + VERBO
-        [{"DEP": "iobj", "POS": "PRON", "MORPH": {"IS_SUPERSET": ["Person=1"]}}, {"POS": "VERB"}],
+        [
+            {"POS": "PRON", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}},
+            {"POS": "VERB"}
+        ],
         # Oraciones del tipo "Me voy a hacer...". Detecta "Voy" + "a" + VERBO
-        [{"DEP": "aux", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1"]}}, {"DEP": "mark", "POS": "ADP"}, {"POS": "VERB"}],
+        [
+            {"DEP": "aux", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}},
+            {"DEP": "mark", "POS": "ADP"}, {"POS": "VERB"}
+        ],
 ]
 first_person_matcher.add("first_person", first_person_verb_pattern)
 
@@ -57,7 +63,7 @@ def hello_world():
 def check_text(text):
     doc = nlp(text)
     for token in doc:
-        print(token.text, token.dep_, token.pos_)
+        print(token.text, token.dep_, token.pos_, token.morph)
     # Match first person verbs
     first_person_matches = first_person_matcher(doc, as_spans=True)
 
