@@ -54,7 +54,7 @@ examples_list = json.loads(examples_str)
 def hello_world():
     sentences = []
     tokens = request.get_json().get('tokens')
-    tokens.extend(examples_list)
+    #tokens.extend(examples_list)
     for token in tokens:
         sentences.extend(check_text(token))
     return sentences
@@ -74,23 +74,12 @@ def check_text(text):
             "text": first_person_matches[0].sent.text,
             "pattern": "SHAMING"
             })
-    """
-    for span in first_person_matches:
-        print(span.sent.text, span.text, span.label_)
-        negation_matches = negation_matcher(span.sent, as_spans=True)
-        # Si hay muchos "no" en la oración, me quedo con el primero
-        if negation_matches:
-            sentences.append({
-                "text": negation_matches[0].sent.text,
-                "pattern": "SHAMING"
-                })
     if detect_urgency(doc, PATTERNS_URGENCY):
         print(text)
         sentences.append({
             "text": text,
             "pattern": "URGENCY"
             })
-            """
     return sentences
 
 
