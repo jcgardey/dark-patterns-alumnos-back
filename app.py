@@ -22,8 +22,20 @@ PATTERNS_URGENCY = ["limita","últi","sol", "apur","pierd","perd","ahora","ya","
 # First person verb matcher
 first_person_matcher = Matcher(nlp.vocab)
 first_person_verb_pattern = [
-        [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1"]}}],
-        [{"DEP": "iobj", "POS": "PRON", "MORPH": {"IS_SUPERSET": ["Person=1"]}}, {"POS": "VERB"}],
+        # Verbos en primer persona
+        [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}],
+        # Oraciones del tipo "Soy una mala persona". Detecta "Soy"
+        [{"DEP": "cop", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}],
+        # Oraciones del tipo "Me gusta...". Detecta "Me" + VERBO
+        [
+            {"POS": "PRON", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}},
+            {"POS": "VERB"}
+        ],
+        # Oraciones del tipo "Me voy a hacer...". Detecta "Voy" + "a" + VERBO
+        [
+            {"DEP": "aux", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}},
+            {"DEP": "mark", "POS": "ADP"}, {"POS": "VERB"}
+        ],
 ]
 first_person_matcher.add("first_person", first_person_verb_pattern)
 
@@ -50,19 +62,18 @@ def hello_world():
 
 def check_text(text):
     doc = nlp(text)
+    for token in doc:
+        print(token.text, token.dep_, token.pos_, token.morph)
     # Match first person verbs
     first_person_matches = first_person_matcher(doc, as_spans=True)
 
     sentences = []
-    for span in first_person_matches:
-        print(span.sent.text, span.text, span.label_)
-        negation_matches = negation_matcher(span.sent, as_spans=True)
-        # Si hay muchos "no" en la oración, me quedo con el primero
-        if negation_matches:
-            sentences.append({
-                "text": negation_matches[0].sent.text,
-                "pattern": "SHAMING"
-                })
+    if first_person_matches:
+        print(first_person_matches[0].sent.text, first_person_matches[0].text)
+        sentences.append({
+            "text": first_person_matches[0].sent.text,
+            "pattern": "SHAMING"
+            })
     if detect_urgency(doc, PATTERNS_URGENCY):
         print(text)
         sentences.append({
