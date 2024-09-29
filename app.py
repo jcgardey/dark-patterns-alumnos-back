@@ -50,20 +50,26 @@ examples_str = file.read()
 file.close()
 examples_list = json.loads(examples_str)
 
-@app.post("/")
-def hello_world():
+@app.post("/shaming")
+def detect_shaming():
     sentences = []
     tokens = request.get_json().get('tokens')
     #tokens.extend(examples_list)
     for token in tokens:
-        sentences.extend(check_text(token))
+        sentences.extend(check_text_shaming(token))
+    return sentences
+
+@app.post("/urgency")
+def detect_urgency():
+    sentences = []
+    tokens = request.get_json().get('tokens')
+    for token in tokens:
+        sentences.extend(check_text_urgency(token))
     return sentences
 
 
-def check_text(text):
+def check_text_shaming(text):
     doc = nlp(text)
-    for token in doc:
-        print(token.text, token.dep_, token.pos_, token.morph)
     # Match first person verbs
     first_person_matches = first_person_matcher(doc, as_spans=True)
 
@@ -74,6 +80,13 @@ def check_text(text):
             "text": first_person_matches[0].sent.text,
             "pattern": "SHAMING"
             })
+    return sentences
+
+
+def check_text_urgency(text):
+    doc = nlp(text)
+
+    sentences = []
     if detect_urgency(doc, PATTERNS_URGENCY):
         print(text)
         sentences.append({
