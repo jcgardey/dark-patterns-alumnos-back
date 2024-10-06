@@ -56,7 +56,7 @@ def detect_shaming():
     tokens = request.get_json().get('tokens')
     #tokens.extend(examples_list)
     for token in tokens:
-        sentences.extend(check_text_shaming(token))
+        sentences.extend(check_text_shaming(token["text"], token["path"]))
     return sentences
 
 @app.post("/urgency")
@@ -64,11 +64,11 @@ def detect_urgency():
     sentences = []
     tokens = request.get_json().get('tokens')
     for token in tokens:
-        sentences.extend(check_text_urgency(token))
+        sentences.extend(check_text_urgency(token["text"], token["path"]))
     return sentences
 
 
-def check_text_shaming(text):
+def check_text_shaming(text, path):
     doc = nlp(text)
     # Match first person verbs
     first_person_matches = first_person_matcher(doc, as_spans=True)
@@ -78,12 +78,13 @@ def check_text_shaming(text):
         print(first_person_matches[0].sent.text, first_person_matches[0].text)
         sentences.append({
             "text": first_person_matches[0].sent.text,
+            "path": path,
             "pattern": "SHAMING"
             })
     return sentences
 
 
-def check_text_urgency(text):
+def check_text_urgency(text, path):
     doc = nlp(text)
 
     sentences = []
@@ -91,6 +92,7 @@ def check_text_urgency(text):
         print(text)
         sentences.append({
             "text": text,
+            "path": path,
             "pattern": "URGENCY"
             })
     return sentences
