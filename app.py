@@ -19,6 +19,26 @@ nlp = spacy.load("es_core_news_sm")
 # lista de palabras claves para detectar urgency
 PATTERNS_URGENCY = ["limita","últi","sol", "apur","pierd","perd","ahora","ya","hoy","grat"]
 
+
+PATTERNS_URGENCY_v2 = ["limitado","ultimo","sol", "apur","pierd","perd","ahora","ya","hoy","grat"]
+
+# Fake Scarcity matcher
+fake_scarcity_matcher = Matcher(nlp.vocab)
+fake_scarcity_patterns = [
+        [
+            {"LOWER": {"FUZZY": {"IN": ["ultima", "ultimo"]}}},
+            {"TEXT": {"REGEX": "^\d*"}, "OP": "?"},
+            {"LOWER": {"FUZZY": {"IN": ["unidade", "disponible"]}}}
+        ],
+        [
+            {"LOWER": {"FUZZY1": "solo"}},
+            {"LOWER": {"FUZZY1": "queda"}},
+            {"TEXT": {"REGEX": "^\d+"}},
+        ]
+]
+fake_scarcity_matcher.add("fake_scarcity", fake_scarcity_patterns)
+
+
 # First person verb matcher
 first_person_matcher = Matcher(nlp.vocab)
 first_person_verb_pattern = [
@@ -86,8 +106,18 @@ def check_text_shaming(text, path):
 
 def check_text_urgency(text, path):
     doc = nlp(text)
+    fake_scarcity_matches = fake_scarcity_matcher(doc, as_spans=True)
 
     sentences = []
+    if fake_scarcity_matches:
+        print(fake_scarcity_matches[0].sent.text, fake_scarcity_matches[0].text)
+        sentences.append({
+            "text": fake_scarcity_matches[0].sent.text,
+            "path": path,
+            "pattern": "URGENCY"
+            })
+    return sentences
+    """
     if detect_urgency(doc, PATTERNS_URGENCY):
         print(text)
         sentences.append({
@@ -95,7 +125,7 @@ def check_text_urgency(text, path):
             "path": path,
             "pattern": "URGENCY"
             })
-    return sentences
+    """
 
 
 
