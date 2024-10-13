@@ -19,8 +19,8 @@ nlp = spacy.load("es_core_news_sm")
 # lista de palabras claves para detectar urgency
 PATTERNS_URGENCY = ["limita","últi","sol", "apur","pierd","perd","ahora","ya","hoy","grat"]
 
-
-PATTERNS_URGENCY_v2 = ["limitado","ultimo","sol", "apur","pierd","perd","ahora","ya","hoy","grat"]
+# lista de palabras que no deberían considerarse en el matching de confirm shaming
+SHAMING_EXCEPTIONS = ["inicio"]
 
 # Fake Scarcity matcher
 fake_scarcity_matcher = Matcher(nlp.vocab)
@@ -95,6 +95,9 @@ def check_text_shaming(text, path):
 
     sentences = []
     if first_person_matches:
+        # Check for exceptions
+        if first_person_matches[0].text.lower() in SHAMING_EXCEPTIONS:
+            return []
         print(first_person_matches[0].sent.text, first_person_matches[0].text)
         sentences.append({
             "text": first_person_matches[0].sent.text,
