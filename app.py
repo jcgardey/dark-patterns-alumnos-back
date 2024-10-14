@@ -14,7 +14,6 @@ app = Flask(__name__)
 CORS(app)
 
 nlp = spacy.load("es_core_news_sm")
-#nlp = spacy.load("es_dep_news_trf")
 
 # lista de palabras claves para detectar urgency
 PATTERNS_URGENCY = ["limita","últi","sol", "apur","pierd","perd","ahora","ya","hoy","grat"]
