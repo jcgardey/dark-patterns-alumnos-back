@@ -22,9 +22,9 @@ Retorna una **lista** con:
 
 | Atributo            | Tipo             | Descripción           |
 |---------------------|------------------|-----------------------|
-| `text`              | string           | Texto que contiene un DP. |
-| `path`              | lista de strings | xPath que apunta a la ubicación exacta del elemento que tiene un DP dentro del DOM. |
-| `pattern`           | string           | String identificador del tipo de DP |
+| `[].text`              | string           | Texto que contiene un DP. |
+| `[].path`              | lista de strings | xPath que apunta a la ubicación exacta del elemento que tiene un DP dentro del DOM. |
+| `[].pattern`           | string           | String identificador del tipo de DP |
 
 Ejemplo del body de un request:
 
