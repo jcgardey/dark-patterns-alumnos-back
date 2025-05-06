@@ -6,29 +6,25 @@ from flask import Flask
 from flask import request
 from flask_cors import CORS
 
-from datetime import datetime
-
-
 
 app = Flask(__name__)
 CORS(app)
 
 nlp = spacy.load("es_core_news_sm")
 
-# lista de palabras claves para detectar urgency
-PATTERNS_URGENCY = ["limita","últi","sol", "apur","pierd","perd","ahora","ya","hoy","grat"]
-
-# lista de palabras que no deberían considerarse en el matching de confirm shaming
+# lista de palabras que no deberían considerarse en el matching de Confirmshaming
 SHAMING_EXCEPTIONS = ["inicio"]
 
 # Fake Scarcity matcher
 fake_scarcity_matcher = Matcher(nlp.vocab)
 fake_scarcity_patterns = [
+        # Oraciones del tipo "Últimas 3 unidades" o "ultimo disponible"
         [
             {"LOWER": {"FUZZY": {"IN": ["ultima", "ultimo"]}}},
             {"TEXT": {"REGEX": "^\d*"}, "OP": "?"},
             {"LOWER": {"FUZZY": {"IN": ["unidade", "disponible"]}}}
         ],
+        # Oraciones del tipo "Solo quedan 3"
         [
             {"LOWER": {"FUZZY1": "solo"}},
             {"LOWER": {"FUZZY1": "queda"}},
@@ -38,7 +34,7 @@ fake_scarcity_patterns = [
 fake_scarcity_matcher.add("fake_scarcity", fake_scarcity_patterns)
 
 
-# First person verb matcher
+# Confirmshaming matcher
 first_person_matcher = Matcher(nlp.vocab)
 first_person_verb_pattern = [
         # Verbos en primer persona
@@ -58,22 +54,11 @@ first_person_verb_pattern = [
 ]
 first_person_matcher.add("first_person", first_person_verb_pattern)
 
-# "No, thanks" matcher
-negation_matcher = Matcher(nlp.vocab)
-negation_pattern = [{"LOWER": "no"}]
-negation_matcher.add("negation", [negation_pattern])
-
-# Hardcoded examples
-file = open("examples_es.json", "r")
-examples_str = file.read()
-file.close()
-examples_list = json.loads(examples_str)
 
 @app.post("/shaming")
 def detect_shaming():
     sentences = []
     tokens = request.get_json().get('tokens')
-    #tokens.extend(examples_list)
     for token in tokens:
         sentences.extend(check_text_shaming(token["text"], token["path"]))
     return sentences
@@ -119,22 +104,3 @@ def check_text_urgency(text, path):
             "pattern": "URGENCY"
             })
     return sentences
-    """
-    if detect_urgency(doc, PATTERNS_URGENCY):
-        print(text)
-        sentences.append({
-            "text": text,
-            "path": path,
-            "pattern": "URGENCY"
-            })
-    """
-
-
-
-def detect_urgency(doc,p):
-    for token in doc:
-        if(token.pos_ != "PUNCT"):
-            for patron in p:
-                if patron in token.text.lower():
-                    return True
-    return False
