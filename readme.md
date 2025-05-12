@@ -74,6 +74,12 @@ python -m venv .env
 source .env/bin/activate
 pip install -r requirements.txt
 ```
+En windows:
+```
+python -m venv .env
+.\.env\Scripts\activate
+pip install -r requirements.txt
+```
 Una vez instalado levantar el server con `flask run`
 
 ### Docker
