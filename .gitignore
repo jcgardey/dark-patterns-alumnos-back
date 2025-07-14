@@ -13,3 +13,8 @@ __pycache__
 *.py[cod]
 *$py.class
 pip-selfcheck.json
+
+.vscode-server
+.cache
+.dotnet
+.bash_history

@@ -116,3 +116,100 @@ def check_text_shaming(text, path):
             }
         )
     return sentences
+
+
+def is_an_exception(text):
+    """
+    Check if the text is in the list of exceptions.
+    Args:
+        text (str): The text to check.
+    Returns:
+        bool: True if the text is an exception, False otherwise.
+    """
+    return text.lower() in SHAMING_EXCEPTIONS
+
+
+def check_shaming_in_text(text):
+    doc = NLP(text)
+    matches = first_person_matcher(doc, as_spans=True)
+    if not matches:
+        return False
+    if is_an_exception(matches[0].text):
+        return False
+    return True
+
+
+def check_text_shaming_nopath(data):
+    """
+    Analyzes the provided data for instances of shaming language in titles, texts, and button labels.
+    Args:
+        data (dict): A dictionary containing the following keys:
+            - "Path" (str): The path associated with the data.
+            - "Title" (str): The title text to check for shaming.
+            - "Texts" (list of dict): Each dict contains:
+                - "Text" (str): The text to check.
+                - "ID" (str): The identifier for the text.
+            - "Buttons" (list of dict): Each dict contains:
+                - "Label" (str): The button label to check.
+                - "ID" (str): The identifier for the button.
+    Returns:
+        dict: A dictionary with the following structure:
+            - "Version" (str): The version of the response format.
+            - "Title" (dict): Information about the title, including:
+                - The title text.
+                - "HasShaming" (bool): Whether shaming language was detected in the title.
+                - "ID" (str): The identifier "Title".
+            - "ShamingInstances" (list): List of dicts for each text/button label, each containing:
+                - "Text" (str): The text or label checked.
+                - "HasShaming" (bool): Whether shaming language was detected.
+                - "ID" (str): The identifier for the text/button.
+            - "Path" (str): The path from the input data.
+    Note:
+        Requires the function `check_shaming_in_text` to be defined elsewhere, which determines if a given text contains shaming language.
+    """
+    response = dict()
+    response["Version"] = "0.2"
+    response["ShamingInstances"] = []
+    response["Path"] = data["Path"]
+
+    if check_shaming_in_text(data["Title"]):
+        response["Title"] = {"Text": data["Title"], "HasShaming": True, "ID": "Title"}
+    else:
+        response["Title"] = {"Text": data["Title"], "HasShaming": False, "ID": "Title"}
+
+    for text in data["Texts"]:
+        if check_shaming_in_text(text["Text"]):
+            response["ShamingInstances"].append(
+                {
+                    "Text": text["Text"],
+                    "HasShaming": True,
+                    "ID": text["ID"],
+                }
+            )
+        else:
+            response["ShamingInstances"].append(
+                {
+                    "Text": text["Text"],
+                    "HasShaming": False,
+                    "ID": text["ID"],
+                }
+            )
+
+    for button in data["Buttons"]:
+        if check_shaming_in_text(button["Label"]):
+            response["ShamingInstances"].append(
+                {
+                    "Text": button["Label"],
+                    "HasShaming": True,
+                    "ID": button["ID"],
+                }
+            )
+        else:
+            response["ShamingInstances"].append(
+                {
+                    "Text": button["Label"],
+                    "HasShaming": False,
+                    "ID": button["ID"],
+                }
+            )
+    return response
