@@ -1,86 +1,102 @@
 from config import NLP
 from spacy.matcher import Matcher
 
-# lista de palabras que no deberían considerarse en el matching de Confirmshaming
-SHAMING_EXCEPTIONS = ["inicio"]
+matcher = Matcher(NLP.vocab)
 
-# Confirmshaming matcher
-first_person_matcher = Matcher(NLP.vocab)
-first_person_verb_pattern = [
-    # Verbos en primera persona
+SHAMING_EXCEPTIONS = ["inicio"]
+NEGATIVE_TERMS = {
+    "verbos": ["ignorar", "mentir", "criticar", "procrastinar", "romper reglas", "cometer errores",
+               "desobedecer", "manipular", "vengar", "envidiar",
+    ],
+    "adjetivos": ["desordenado", "egoísta", "sarcástico", "impuntual", "hiriente", "arrogante",
+                  "grosero", "malhumorado", "perezoso", "despreocupado", "irritable", "intolerante",
+                  "rudo", "desconsiderado", "cínico", "descuidado", "apático", "negligente",
+                  "insensible", "deshonesto", "desagradable", "celoso", "resentido", "irresponsable",
+                  "negativo", "ignorante"
+    ],
+    "sustantivos": ["bromas pesadas", "egoísmo", "irresponsabilidad", "deslealtad",
+                    "bullying", "injusticia", "impaciencia",
+    ],
+    "frases_compuestas": ["promesas que no cumplo", "hacer caso omiso", "hacer lo mínimo posible",
+        "seguir cometiendo los mismos errores", "seguir evitando responsabilidades", "seguir ignorando consejos",
+        "seguir ignorando soluciones fáciles", "a último momento"
+    ]
+}
+ALL_NEGATIVE_TERMS = (
+    NEGATIVE_TERMS["verbos"] +
+    NEGATIVE_TERMS["adjetivos"] +
+    NEGATIVE_TERMS["sustantivos"] +
+    NEGATIVE_TERMS["frases_compuestas"]
+)
+
+# --- Primera persona ---
+matcher.add("FP_VERB", [
     [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}],
-    # Oraciones del tipo "Soy una mala persona"
+])
+
+matcher.add("FP_COPULA", [
+    [{"DEP": "cop", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}],
+])
+
+matcher.add("FP_ME_VERB", [
+    [{"POS": "PRON", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}, {"POS": "VERB"}],
+])
+
+# --- Perífrasis ---
+matcher.add("FP_PERIFRASIS_VOY_A", [
     [
-        {
-            "DEP": "cop",
-            "POS": "AUX",
-            "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]},
-        }
-    ],
-    # "Me gusta..."
-    [
-        {"POS": "PRON", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}},
-        {"POS": "VERB"},
-    ],
-    # "Me voy a hacer..."
-    [
-        {
-            "DEP": "aux",
-            "POS": "AUX",
-            "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]},
-        },
+        {"DEP": "aux", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}},
         {"DEP": "mark", "POS": "ADP"},
         {"POS": "VERB"},
-    ],
-    # Nuevos patrones para ironía/sarcasmo
-    # "Prefiero no saber nada útil"
+    ]
+])
+
+matcher.add("FP_ES_LO_MIO", [
     [
-        {"LEMMA": "preferir", "POS": "VERB"},
-        {"LOWER": "no"},
-        {"POS": "VERB"},
-    ],
-    # "¿Quién necesita aprender...?"
-    [
-        {"LOWER": "quién"},
-        {"LEMMA": "necesitar", "POS": "VERB"},
-    ],
-    # "¿Por qué habría de...?"
-    [
-        {"LOWER": "por"},
-        {"LOWER": "qué"},
-        {"LEMMA": "haber", "POS": "AUX"},
-        {"LOWER": "de"},
-        {"POS": "VERB"},
-    ],
-    # "Ignorar soluciones fáciles es mi especialidad"
+        {"LEMMA": {"IN": ["seguir", "ignorar", "ser", "hacer"]}, "POS": {"IN": ["VERB", "AUX"]}},
+        {"OP": "+", "POS": {"NOT_IN": ["PUNCT"]}},  # al menos un token intermedio
+        {"LEMMA": "ser", "POS": {"IN": ["AUX", "VERB"]}},
+        {"LOWER": "lo"},
+        {"LOWER": "mío"},
+    ]
+])
+
+
+
+
+# --- Ironía ---
+matcher.add("IRONIA_PREFIERO_NO", [
+    [{"LEMMA": "preferir", "POS": "VERB"}, {"LOWER": "no"}, {"POS": "VERB"}],
+])
+
+matcher.add("IRONIA_QUIEN_NECESITA", [
+    [{"LOWER": "quién"}, {"LEMMA": "necesitar", "POS": "VERB"}],
+])
+
+matcher.add("IRONIA_PORQUE_HABRIA_DE", [
+    [{"LOWER": "por"}, {"LOWER": "qué"}, {"LEMMA": "haber", "POS": "AUX"}, {"LOWER": "de"}, {"POS": "VERB"}],
+])
+
+# --- Metáforas ---
+matcher.add("META_IGNORAR_ES_MI", [
     [
         {"LEMMA": "ignorar", "POS": "VERB"},
         {"POS": "NOUN", "OP": "+"},
         {"LEMMA": "ser", "POS": "AUX"},
         {"LOWER": "mi"},
         {"POS": "NOUN"},
-    ],
-    # "Seguir haciendo las cosas mal es lo mío"
-    [
-        {"LEMMA": "seguir", "POS": "VERB"},
-        {"POS": "VERB"},
-        {"POS": "DET", "OP": "?"},
-        {"POS": "NOUN", "OP": "*"},
-        {"LEMMA": "ser", "POS": "AUX"},
-        {"LOWER": "lo"},
-        {"LOWER": "mío"},
-    ],
-    # "vivir confundido es mi estilo"
+    ]
+])
+
+matcher.add("META_VIVIR_ES_MI", [
     [
         {"LEMMA": "vivir", "POS": "VERB"},
         {"POS": "ADJ", "OP": "?"},
         {"LEMMA": "ser", "POS": "AUX"},
         {"LOWER": "mi"},
         {"POS": "NOUN"},
-    ],
-]
-
-first_person_matcher.add("first_person", first_person_verb_pattern)
+    ]
+])
 
 
 def check_text_shaming(text, path):
@@ -99,23 +115,21 @@ def check_text_shaming(text, path):
         Si no se encuentran coincidencias, devuelve una lista vacía.
     """
     doc = NLP(text)
-    # Match first person verbs
-    first_person_matches = first_person_matcher(doc, as_spans=True)
+    matches = matcher(doc)  # matcher global con todos los patrones
+    results = []
 
-    sentences = []
-    if first_person_matches:
-        # Check for exceptions
-        if first_person_matches[0].text.lower() in SHAMING_EXCEPTIONS:
-            return []
-        print(first_person_matches[0].sent.text, first_person_matches[0].text)
-        sentences.append(
-            {
-                "text": first_person_matches[0].sent.text,
-                "path": path,
-                "pattern": "SHAMING",
-            }
-        )
-    return sentences
+    for match_id, start, end in matches:
+        span = doc[start:end]
+        if span.text.lower() in SHAMING_EXCEPTIONS:
+            continue  # ignorar excepciones definidas
+
+        results.append({
+            "text": span.sent.text,
+            "path": path,
+            "pattern": NLP.vocab.strings[match_id],  # nombre del patrón
+        })
+
+    return results
 
 
 def is_an_exception(text):
@@ -128,15 +142,53 @@ def is_an_exception(text):
     """
     return text.lower() in SHAMING_EXCEPTIONS
 
+def contains_negative_terms(span):
+    """
+    Detecta términos negativos dentro de un span:
+    - Tokens individuales usando lemma
+    - Frases compuestas usando substring en texto normalizado
+    """
+    span_text = " ".join(span.text.lower().split())
+
+    # Revisar tokens individuales
+    for token in span:
+        if token.lemma_.lower() in NEGATIVE_TERMS["verbos"] + NEGATIVE_TERMS["adjetivos"] + NEGATIVE_TERMS["sustantivos"]:
+            return True
+
+    # Revisar frases compuestas
+    for phrase in NEGATIVE_TERMS["frases_compuestas"]:
+        # reemplazamos múltiples espacios por uno solo
+        phrase_norm = " ".join(phrase.lower().split())
+        if phrase_norm in span_text:
+            return True
+
+    return False
+
 
 def check_shaming_in_text(text):
     doc = NLP(text)
-    matches = first_person_matcher(doc, as_spans=True)
+    matches = matcher(doc)
     if not matches:
         return False
-    if is_an_exception(matches[0].text):
-        return False
-    return True
+
+    for match_id, start, end in matches:
+        span = doc[start:end].sent
+        if is_an_exception(span.text):
+            continue
+
+        rule_name = NLP.vocab.strings[match_id]
+
+        # Para patrones de tipo FP_ES_LO_MIO, revisamos términos negativos
+        if rule_name == "FP_ES_LO_MIO":
+            if contains_negative_terms(span):
+                return rule_name
+        else:
+            # Para otros patrones (IRONIA, META, FP_VERB), cualquier match ya es shaming
+            return rule_name
+
+    return False
+
+
 
 
 def check_text_shaming_nopath(data):
