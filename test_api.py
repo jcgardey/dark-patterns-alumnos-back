@@ -1,5 +1,6 @@
 
 import pytest
+import json
 from app import app
 
 @pytest.fixture
@@ -8,25 +9,29 @@ def client():
         yield client
 
 def test_shaming(client):
-    data = {
-        "Version": "0.2",
-        "Title": "Sigo cometiendo los mismos errores",
-        "Texts": [
-            {"Text": "Ignorar consejos es lo mío", "ID": "t1"},
-            {"Text": "Siempre llego tarde", "ID": "t2"}
-        ],
-        "Buttons": [
-            {"Label": "Promesas que no cumplo", "ID": "b1"}
-        ],
-        "Path": "test/path"
+    # Leer data desde ejemplos.json
+    with open("ejemplos.json", encoding="utf-8") as f:
+        data = json.load(f)
+    # Adaptar al schema esperado
+    data_schema = {
+        "Version": data["Version"],
+        "Title": data["Title"],
+        "Texts": data["Texts"],
+        "Buttons": data["Buttons"],
+        "Path": data["Path"]
     }
-    response = client.post("/shaming", json=data)
+    response = client.post("/shaming", json=data_schema)
     assert response.status_code == 200
     assert "Version" in response.json
-    assert response.json["Version"] == "0.2"
+    assert response.json["Version"] == data["Version"]
     assert "Title" in response.json
     assert "ShamingInstances" in response.json
     assert "Path" in response.json
+
+    # Test: los IDs que empiezan con 'n' no son shaming
+    for instance in response.json["ShamingInstances"]:
+        if instance["ID"].startswith("n"):
+            assert not instance["HasShaming"], f"ID {instance['ID']} no debe ser shaming"
 
 def test_urgency(client):
     data = {
