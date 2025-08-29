@@ -3,10 +3,10 @@ Este módulo detecta patrones de urgencia en textos usando spaCy.
 
 Incluye dos tipos de matchers:
 - PhraseMatcher: detecta coincidencias exactas de frases típicas de urgencia
-  (ej: "ventas flash", "compre ya", "última oportunidad", "limited time offer").
+    (ej: "ventas flash", "compre ya", "última oportunidad", "limited time offer").
 - Matcher: detecta patrones estructurales flexibles, como verbos imperativos
-  combinados con palabras de urgencia, o frases como
-  "no se quede fuera", "la promoción termina pronto", "quedan pocas horas".
+    combinados con palabras de urgencia, o frases como
+    "no se quede fuera", "la promoción termina pronto", "quedan pocas horas".
 
 Esto permite cubrir tanto frases hardcodeadas como variantes y estructuras
 comunes de urgencia comercial (dark patterns).
@@ -16,48 +16,39 @@ from config import NLP
 from spacy.matcher import PhraseMatcher, Matcher
 from .types import UrgencyRequestSchema, UrgencyResponseSchema
 
-# ------------------------------
-# PhraseMatcher para coincidencias exactas
-# ------------------------------
 urgency_phrase_matcher = PhraseMatcher(NLP.vocab, attr="LOWER")
 
 frases_urgencia = [
-    # Español
     "ventas flash",
     "venta flash",
+    "oferta flash",
     "ventas relampago",
     "compre ya",
-    "no se quede fuera", # Aunque tiene imperativo, la combinación es muy específica
-    "última oportunidad", # Puede ser estructural, pero como frase hecha es muy común
+    "no se quede fuera",
+    "última oportunidad",
     "oferta especial",
     "oferta única",
     "solo hoy",
     "solo por hoy",
-    "descuento por tiempo limitado", # Podría ser estructural, pero es una frase muy concreta
-    "promoción limitada", # Similar al anterior
-    # Inglés
+    "descuento por tiempo limitado",
+    "promoción limitada",
     "flash sale",
     "flash deals",
-    "limited time offer", # Aunque tiene "limited time", es una frase hecha
+    "limited time offer",
     "hurry up",
-    "last chance", # Similar a "última oportunidad"
-    "offer ends soon", # "ends soon" se puede coger con la otra regla
-    "limited offer", # Similar a "oferta limitada"
-    "time is running out", # Es una frase idiomática
+    "last chance",
+    "offer ends soon",
+    "limited offer",
+    "time is running out",
 ]
 
 patterns = [NLP.make_doc(frase) for frase in frases_urgencia]
 urgency_phrase_matcher.add("URGENCIA_PHRASE", patterns)
 
-
-# ------------------------------
-# Matcher estructural para patrones flexibles
-# ------------------------------
 urgency_matcher = Matcher(NLP.vocab)
 
-# Imperativo + urgencia
 urgency_matcher.add(
-    "URGENT_IMPERATIVE",
+    "URGENT_IMPERATIVE_DIRECT",
     [
         [
             {
@@ -69,52 +60,110 @@ urgency_matcher.add(
                         "participar",
                         "apresurarse",
                         "adquirir",
+                        "obtener",
+                        "reservar",
+                        "haz",
                     ]
                 },
                 "POS": "VERB",
                 "MORPH": {"IS_SUPERSET": ["Mood=Imp"]},
             },
-            {"LOWER": {"IN": ["ya", "ahora", "mismo"]}, "OP": "?"},
+            {"LOWER": {"IN": ["ya", "ahora", "mismo", "hoy"]}, "OP": "?"},
         ],
+    ],
+)
+
+urgency_matcher.add(
+    "URGENT_IMPERATIVE_SIMPLE",
+    [
+        [
+            {
+                "POS": "VERB",
+                "MORPH": {"IS_SUPERSET": ["Mood=Imp"]},
+                "LEMMA": {"IN": ["comprar", "hacer", "aprovechar", "venir", "ir"]},
+            },
+        ],
+    ],
+)
+
+urgency_matcher.add(
+    "URGENT_DONT_MISS_OUT",
+    [
         [
             {"LOWER": {"IN": ["no"]}},
-            {"LEMMA": {"IN": ["quedar", "perder"]}},
-            {"LOWER": {"IN": ["fuera", "atrás", "oportunidad"]}},
-        ],
-        [
             {
-                "LEMMA": {
-                    "IN": [
-                        "comprar",
-                        "aprovechar",
-                        "entrar",
-                        "participar",
-                        "apresurarse",
-                        "adquirir",
-                    ]
-                },
-                "POS": "VERB",
-                "MORPH": {"IS_SUPERSET": ["Mood=Imp"]},
+                "POS": {"IN": ["PRON", "ADV", "DET", "ADP"]},
+                "OP": "*",
             },
-            {"LOWER": {"IN": ["ya", "ahora", "mismo"]}, "OP": "?"},
+            {"LEMMA": {"IN": ["quedar", "perder", "dejar"]}},
+            {
+                "POS": {"IN": ["PRON", "ADV", "ADP", "DET"]},
+                "OP": "*",
+            },
+            {"LOWER": {"IN": ["fuera", "atrás", "oportunidad", "pasar", "esto"]}},
         ],
     ],
 )
 
-# Oferta/Promoción que termina
 urgency_matcher.add(
-    "URGENT_OFFER_ENDING",
+    "URGENT_OFFER_ENDING_VERB",
     [
         [
-            {"LOWER": {"IN": ["la", "esta"]}, "OP": "?"},
-            {"LOWER": {"IN": ["oferta", "promoción", "venta", "descuento"]}},
-            {"LEMMA": {"IN": ["terminar", "finalizar", "acabar"]}},
-            {"LOWER": {"IN": ["pronto", "ya", "hoy"]}, "OP": "?"},
-        ]
+            {"LOWER": {"IN": ["la", "esta", "el", "este"]}, "OP": "?"},
+            {"LOWER": {"IN": ["oferta", "promoción", "venta", "descuento", "evento"]}},
+            {"POS": {"IN": ["ADJ", "NOUN", "ADP"]}, "OP": "*"},
+            {"LEMMA": {"IN": ["terminar", "finalizar", "acabar", "expirar"]}},
+            {
+                "LOWER": {
+                    "IN": [
+                        "pronto",
+                        "ya",
+                        "hoy",
+                        "mañana",
+                        "esta",
+                        "este",
+                        "la",
+                        "el",
+                        "en",
+                        "antes",
+                    ]
+                },
+                "OP": "*",
+            },
+            {
+                "LOWER": {
+                    "IN": [
+                        "semana",
+                        "mes",
+                        "día",
+                        "noche",
+                        "oportunidad",
+                        "minutos",
+                        "horas",
+                        "dias",
+                    ]
+                },
+                "OP": "?",
+            },
+            {"LIKE_NUM": True, "OP": "?"},
+            {"LOWER": {"IN": ["minutos", "horas", "días", "semanas"]}, "OP": "?"},
+        ],
     ],
 )
 
-# Última oportunidad
+urgency_matcher.add(
+    "URGENT_OFFER_ENDING_BEFORE",
+    [
+        [
+            {"LOWER": {"IN": ["antes"]}},
+            {"LOWER": {"IN": ["de"]}},
+            {"LOWER": {"IN": ["que"]}},
+            {"LOWER": {"IN": ["se"]}, "OP": "?"},
+            {"LEMMA": {"IN": ["acabar", "terminar", "agotar", "finalizar", "expirar"]}},
+        ],
+    ],
+)
+
 urgency_matcher.add(
     "URGENT_LAST_CHANCE",
     [
@@ -122,7 +171,15 @@ urgency_matcher.add(
             {"LOWER": {"IN": ["última", "último", "últimas", "últimos"]}},
             {
                 "LOWER": {
-                    "IN": ["oportunidad", "chance", "posibilidad", "días", "horas"]
+                    "IN": [
+                        "oportunidad",
+                        "chance",
+                        "posibilidad",
+                        "días",
+                        "horas",
+                        "cupos",
+                        "plazas",
+                    ]
                 }
             },
         ],
@@ -130,38 +187,96 @@ urgency_matcher.add(
     ],
 )
 
-# Tiempo limitado
 urgency_matcher.add(
     "URGENT_TIME_LIMIT",
     [
         [
-            {"LOWER": {"IN": ["tiempo", "oferta"]}},
+            {"LOWER": {"IN": ["tiempo", "oferta", "promoción", "descuento"]}},
             {"LOWER": {"IN": ["limitado", "limitada"]}},
         ],
         [{"LOWER": {"IN": ["limited"]}}, {"LOWER": {"IN": ["time", "offer"]}}],
     ],
 )
 
-# Quedan X horas/días (para usar cuando frontend detecta reloj y manda contexto)
 urgency_matcher.add(
-    "URGENT_FEW_LEFT",
+    "URGENT_DONT_MISS_OUT",
     [
         [
-            {"LOWER": {"IN": ["oferta", "promoción", "descuento", "venta"]}},  # palabra comercial obligatoria
-            {"LEMMA": {"IN": ["quedar", "faltar"]}},
-            {"LOWER": {"IN": ["pocas", "solo", "únicas"]}, "OP": "?"},
-            {"LOWER": {"IN": ["horas", "días", "minutos", "semanas"]}},
+            {"LOWER": "no"},
+            {"POS": {"IN": ["PRON", "ADV", "DET", "ADP"]}, "OP": "*"},
+            {"LEMMA": "quedes"},
+            {"LOWER": "fuera"},
+            {"POS": {"IN": ["ADP", "DET"]}, "OP": "*"},
+            {
+                "LOWER": {
+                    "IN": [
+                        "oportunidad",
+                        "promoción",
+                        "esto",
+                        "ganga",
+                        "oferta",
+                        "evento",
+                    ]
+                }
+            },
         ],
         [
-            {"LOWER": {"IN": ["only"]}},
-            {"LIKE_NUM": True},
-            {"LOWER": {"IN": ["hours", "days", "minutes", "left"]}},
+            {"LOWER": "no"},
+            {"POS": {"IN": ["PRON", "ADV", "DET", "ADP"]}, "OP": "*"},
+            {"LEMMA": {"IN": ["perder", "dejar"]}},
+            {"POS": {"IN": ["PRON", "ADV", "ADP", "DET"]}, "OP": "*"},
+            {
+                "LOWER": {
+                    "IN": [
+                        "oportunidad",
+                        "pasar",
+                        "esto",
+                        "promoción",
+                        "ganga",
+                        "oferta",
+                        "evento",
+                    ]
+                }
+            },
+        ],
+        [
+            {
+                "LOWER": {
+                    "IN": [
+                        "envío",
+                        "oferta",
+                        "promoción",
+                        "descuento",
+                        "venta",
+                        "plazo",
+                    ]
+                }
+            },
+            {"POS": {"IN": ["ADJ", "ADV", "DET", "NOUN", "PROPN"]}, "OP": "*"},
+            {"LEMMA": {"IN": ["terminar", "acabar", "expirar", "finalizar"]}},
+            {
+                "LOWER": {
+                    "IN": ["pronto", "hoy", "ya", "ahora", "inmediatamente", "mañana"]
+                }
+            },
+        ],
+        [
+            {"LOWER": {"IN": ["último", "final", "solo"]}},
+            {"POS": {"IN": ["ADJ", "DET", "ADV"]}, "OP": "*"},
+            {"LOWER": {"IN": ["oportunidad", "día", "horas", "momentos", "chance"]}},
+        ],
+        [
+            {"LEMMA": "quedar"},
+            {"POS": {"IN": ["DET", "NUM"]}, "OP": "+"},
+            {
+                "LOWER": {
+                    "IN": ["días", "horas", "minutos", "cupos", "plazas", "unidades"]
+                }
+            },
         ],
     ],
 )
 
-
-# Ends soon
 urgency_matcher.add(
     "URGENT_ENDS_SOON",
     [
@@ -172,7 +287,6 @@ urgency_matcher.add(
     ],
 )
 
-# Hurry up / apúrate
 urgency_matcher.add(
     "URGENT_HURRY",
     [
@@ -188,17 +302,18 @@ urgency_matcher.add(
 )
 
 
-# ------------------------------
-# Funciones principales
-# ------------------------------
 def check_text_urgency(text, path):
     """
     Analiza un texto para detectar patrones de urgencia (no escasez)
     y devuelve lista de dicts con text, path, pattern.
     """
     doc = NLP(text)
+    print(f"\nAnalizando texto: '{text}'")
+    for token in doc:
+        print(
+            f"Token: {token.text}, POS: {token.pos_}, LEMMA: {token.lemma_}, LOWER: {token.lower_}"
+        )
     results = []
-    # Coincidencias exactas
     for match_id, start, end in urgency_phrase_matcher(doc):
         span = doc[start:end]
         results.append(
@@ -208,7 +323,6 @@ def check_text_urgency(text, path):
                 "pattern": "PHRASE:" + NLP.vocab.strings[match_id],
             }
         )
-    # Coincidencias estructurales
     for match_id, start, end in urgency_matcher(doc):
         span = doc[start:end]
         results.append(
