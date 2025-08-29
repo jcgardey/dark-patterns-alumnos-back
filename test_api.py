@@ -59,15 +59,20 @@ def test_urgency(client):
             if instance["text"].strip() == token["text"].strip() and instance["path"] == token["path"]:
                 detected_by_id[token.get("id")] = True
 
-    # 1️⃣ Verificar que los IDs que empiezan con 'n' no sean urgencia
-    for token in valid_data["tokens"]:
-        if token.get("id", "").startswith("n"):
-            assert token["id"] not in detected_by_id, f"ID {token['id']} no debe ser urgencia"
+
+    [print(token) for token in detected_by_id]
+
 
     # 2️⃣ Verificar que los IDs que empiezan con 'e' sí sean urgencia
     for token in valid_data["tokens"]:
         if token.get("id", "").startswith("e"):
             assert token["id"] in detected_by_id, f"ID {token['id']} debería ser detectado como urgencia"
+
+    # 1️⃣ Verificar que los IDs que empiezan con 'n' no sean urgencia
+    for token in valid_data["tokens"]:
+        if token.get("id", "").startswith("n"):
+            assert token["id"] not in detected_by_id, f"ID {token['id']} no debe ser urgencia"
+
 
 
 def test_scarcity(client):

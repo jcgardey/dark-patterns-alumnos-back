@@ -12,11 +12,11 @@ Esto permite cubrir tanto frases hardcodeadas como variantes y estructuras
 comunes de urgencia comercial (dark patterns).
 """
 
+import unicodedata
 from config import NLP
-from spacy.matcher import PhraseMatcher, Matcher
-from .types import UrgencyRequestSchema, UrgencyResponseSchema
+from spacy.matcher import Matcher
+from .types import UrgencyResponseSchema
 
-urgency_phrase_matcher = PhraseMatcher(NLP.vocab, attr="LOWER")
 
 frases_urgencia = [
     "ventas flash",
@@ -24,6 +24,11 @@ frases_urgencia = [
     "oferta flash",
     "ventas relampago",
     "compre ya",
+    "compra ya",
+    "promoción relampago",
+    "promoción relámpago",
+    "promocion relampago",
+    "promoción flash",
     "no se quede fuera",
     "última oportunidad",
     "oferta especial",
@@ -40,12 +45,16 @@ frases_urgencia = [
     "offer ends soon",
     "limited offer",
     "time is running out",
+    "apresúrate",
 ]
 
-patterns = [NLP.make_doc(frase) for frase in frases_urgencia]
-urgency_phrase_matcher.add("URGENCIA_PHRASE", patterns)
 
 urgency_matcher = Matcher(NLP.vocab)
+
+for texto in frases_urgencia:
+    doc_frase = NLP(texto)
+    pattern = [{"LOWER": token.lower_} for token in doc_frase]
+    urgency_matcher.add("URGENCIA_PHRASE", [pattern])
 
 urgency_matcher.add(
     "URGENT_IMPERATIVE_DIRECT",
@@ -110,9 +119,16 @@ urgency_matcher.add(
     [
         [
             {"LOWER": {"IN": ["la", "esta", "el", "este"]}, "OP": "?"},
-            {"LOWER": {"IN": ["oferta", "promoción", "venta", "descuento", "evento"]}},
-            {"POS": {"IN": ["ADJ", "NOUN", "ADP"]}, "OP": "*"},
-            {"LEMMA": {"IN": ["terminar", "finalizar", "acabar", "expirar"]}},
+            {"LOWER": {"IN": ["oferta", "promoción", "venta", "descuento"]}},
+            {
+                "POS": {"IN": ["ADJ"]},
+                "OP": "*",
+            },  # Solo adjetivos que describan la oferta.
+            {
+                "LEMMA": {
+                    "IN": ["terminar", "finalizar", "acabar", "expirar", "validar"]
+                }
+            },
             {
                 "LOWER": {
                     "IN": [
@@ -126,6 +142,7 @@ urgency_matcher.add(
                         "el",
                         "en",
                         "antes",
+                        "hasta",
                     ]
                 },
                 "OP": "*",
@@ -141,12 +158,37 @@ urgency_matcher.add(
                         "minutos",
                         "horas",
                         "dias",
+                        "medianoche",  # Asegurado: "medianoche" está presente
+                        "mediodia",
                     ]
                 },
                 "OP": "?",
             },
             {"LIKE_NUM": True, "OP": "?"},
             {"LOWER": {"IN": ["minutos", "horas", "días", "semanas"]}, "OP": "?"},
+        ],
+        [
+            {
+                "LEMMA": {
+                    "IN": ["finalizar", "terminar", "acabar", "expirar", "vencer"]
+                },
+                "IS_SENT_START": True,
+            },
+            {"LOWER": "en", "OP": "?"},
+            {"IS_ALPHA": False, "OP": "+"},
+            {
+                "LOWER": {"IN": ["minutos", "horas", "días", "semanas", "h", "m", "s"]},
+                "OP": "*",
+            },
+        ],
+        [
+            {"LOWER": {"IN": ["la", "esta", "el", "este"]}, "OP": "?"},
+            {"LOWER": {"IN": ["oferta", "promoción", "venta", "descuento"]}},
+            {"LEMMA": "válido"},  # Match por lemma "válido" (cubre válida, válido)
+            {"LOWER": "hasta"},  # Match por "hasta"
+            {
+                "LOWER": {"IN": ["medianoche", "mediodia", "hoy", "mañana", "noche"]}
+            },  # Momentos específicos
         ],
     ],
 )
@@ -314,15 +356,6 @@ def check_text_urgency(text, path):
             f"Token: {token.text}, POS: {token.pos_}, LEMMA: {token.lemma_}, LOWER: {token.lower_}"
         )
     results = []
-    for match_id, start, end in urgency_phrase_matcher(doc):
-        span = doc[start:end]
-        results.append(
-            {
-                "text": span.sent.text,
-                "path": path,
-                "pattern": "PHRASE:" + NLP.vocab.strings[match_id],
-            }
-        )
     for match_id, start, end in urgency_matcher(doc):
         span = doc[start:end]
         results.append(

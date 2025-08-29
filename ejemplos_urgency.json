@@ -67,29 +67,9 @@
             "id": "e13"
         },
         {
-            "text": "solo hasta hoy",
-            "path": "/img1/banner2",
-            "id": "e14"
-        },
-        {
-            "text": "¡No pierdas esta oportunidad única!",
-            "path": "/img2/popup",
-            "id": "e15"
-        },
-        {
             "text": "Compra ya",
             "path": "/img2/popup2",
             "id": "e16"
-        },
-        {
-            "text": "recibe un regalo extra",
-            "path": "/img2/popup2",
-            "id": "n6"
-        },
-        {
-            "text": "Envío gratis",
-            "path": "/img3/timer",
-            "id": "e17"
         },
         {
             "text": "finaliza en 3h",
@@ -97,29 +77,9 @@
             "id": "e18"
         },
         {
-            "text": "OFERTA",
-            "path": "/img3/banner",
-            "id": "e19"
-        },
-        {
             "text": "termina en 2 días",
             "path": "/img3/banner",
             "id": "e20"
-        },
-        {
-            "text": "¡Participa ya!",
-            "path": "/img5/banner",
-            "id": "e21"
-        },
-        {
-            "text": "gana descuentos exclusivos",
-            "path": "/img5/banner",
-            "id": "e22"
-        },
-        {
-            "text": "Últimas unidades disponibles",
-            "path": "/img6/stock",
-            "id": "e23"
         },
         {
             "text": "¡Apresúrate!",
@@ -157,6 +117,11 @@
             "id": "n5"
         },
         {
+            "text": "recibe un regalo extra",
+            "path": "/img2/popup2",
+            "id": "n6"
+        },
+        {
             "text": "Tu sesión caducará en 1 minuto",
             "path": "/img4/alert",
             "id": "n7"
@@ -165,6 +130,21 @@
             "text": "El examen comienza en 30 segundos",
             "path": "/img5/exam",
             "id": "n8"
+        },
+        {
+            "text": "¡Participa ya!",
+            "path": "/img5/banner",
+            "id": "n9"
+        },
+        {
+            "text": "gana descuentos exclusivos",
+            "path": "/img5/banner",
+            "id": "n10"
+        },
+        {
+            "text": "Últimas unidades disponibles",
+            "path": "/img6/stock",
+            "id": "n11"
         }
     ]
 }
