@@ -11,10 +11,8 @@ def client():
         yield client
 
 def test_shaming(client):
-    # Leer data desde ejemplos.json
     with open("ejemplos.json", encoding="utf-8") as f:
         data = json.load(f)
-    # Adaptar al schema esperado
     data_schema = {
         "Version": data["Version"],
         "Title": data["Title"],
@@ -30,13 +28,11 @@ def test_shaming(client):
     assert "ShamingInstances" in response.json
     assert "Path" in response.json
 
-    # Test: los IDs que empiezan con 'n' no son shaming
     for instance in response.json["ShamingInstances"]:
         if instance["ID"].startswith("n"):
             assert not instance["HasShaming"], f"ID {instance['ID']} no debe ser shaming"
 
 def test_urgency(client):
-    # Leer data desde ejemplos_urgency.json
     with open("ejemplos_urgency.json", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -52,23 +48,16 @@ def test_urgency(client):
     assert resp["Version"] == valid_data["Version"]
     assert isinstance(resp["UrgencyInstances"], list)
 
-    # Mapear los resultados detectados por texto+path
     detected_by_id = {}
     for instance in resp["UrgencyInstances"]:
         for token in valid_data["tokens"]:
             if instance["text"].strip() == token["text"].strip() and instance["path"] == token["path"]:
                 detected_by_id[token.get("id")] = True
 
-
-    [print(token) for token in detected_by_id]
-
-
-    # 2️⃣ Verificar que los IDs que empiezan con 'e' sí sean urgencia
     for token in valid_data["tokens"]:
         if token.get("id", "").startswith("e"):
             assert token["id"] in detected_by_id, f"ID {token['id']} debería ser detectado como urgencia"
 
-    # 1️⃣ Verificar que los IDs que empiezan con 'n' no sean urgencia
     for token in valid_data["tokens"]:
         if token.get("id", "").startswith("n"):
             assert token["id"] not in detected_by_id, f"ID {token['id']} no debe ser urgencia"

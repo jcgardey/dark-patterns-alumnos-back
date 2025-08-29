@@ -158,7 +158,7 @@ urgency_matcher.add(
                         "minutos",
                         "horas",
                         "dias",
-                        "medianoche",  # Asegurado: "medianoche" está presente
+                        "medianoche",
                         "mediodia",
                     ]
                 },
@@ -184,11 +184,11 @@ urgency_matcher.add(
         [
             {"LOWER": {"IN": ["la", "esta", "el", "este"]}, "OP": "?"},
             {"LOWER": {"IN": ["oferta", "promoción", "venta", "descuento"]}},
-            {"LEMMA": "válido"},  # Match por lemma "válido" (cubre válida, válido)
-            {"LOWER": "hasta"},  # Match por "hasta"
+            {"LEMMA": "válido"}, 
+            {"LOWER": "hasta"},
             {
                 "LOWER": {"IN": ["medianoche", "mediodia", "hoy", "mañana", "noche"]}
-            },  # Momentos específicos
+            },
         ],
     ],
 )
