@@ -1,7 +1,9 @@
 
+
 import pytest
 import json
 from app import app
+from src.urgency.types import UrgencyRequestSchema, UrgencyResponseSchema
 
 @pytest.fixture
 def client():
@@ -34,18 +36,39 @@ def test_shaming(client):
             assert not instance["HasShaming"], f"ID {instance['ID']} no debe ser shaming"
 
 def test_urgency(client):
-    data = {
-        "Version": "0.1",
-        "tokens": [
-            {"text": "¡Solo quedan 2 unidades!", "path": "test/path"},
-            {"text": "Oferta termina pronto", "path": "test/path"}
-        ]
-    }
-    response = client.post("/urgency", json=data)
+    # Leer data desde ejemplos_urgency.json
+    with open("ejemplos_urgency.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    schema = UrgencyRequestSchema()
+    valid_data = schema.load(data)
+    response = client.post("/urgency", json=valid_data)
     assert response.status_code == 200
-    assert "UrgencyInstances" in response.json
-    assert response.json["Version"] == "0.1"
-    assert isinstance(response.json["UrgencyInstances"], list)
+
+    response_schema = UrgencyResponseSchema()
+    resp = response_schema.load(response.json)
+
+    assert "UrgencyInstances" in resp
+    assert resp["Version"] == valid_data["Version"]
+    assert isinstance(resp["UrgencyInstances"], list)
+
+    # Mapear los resultados detectados por texto+path
+    detected_by_id = {}
+    for instance in resp["UrgencyInstances"]:
+        for token in valid_data["tokens"]:
+            if instance["text"].strip() == token["text"].strip() and instance["path"] == token["path"]:
+                detected_by_id[token.get("id")] = True
+
+    # 1️⃣ Verificar que los IDs que empiezan con 'n' no sean urgencia
+    for token in valid_data["tokens"]:
+        if token.get("id", "").startswith("n"):
+            assert token["id"] not in detected_by_id, f"ID {token['id']} no debe ser urgencia"
+
+    # 2️⃣ Verificar que los IDs que empiezan con 'e' sí sean urgencia
+    for token in valid_data["tokens"]:
+        if token.get("id", "").startswith("e"):
+            assert token["id"] in detected_by_id, f"ID {token['id']} debería ser detectado como urgencia"
+
 
 def test_scarcity(client):
     data = {

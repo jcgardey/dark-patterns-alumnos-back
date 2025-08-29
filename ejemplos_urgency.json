@@ -1,0 +1,170 @@
+{
+    "Version": "1.0",
+    "tokens": [
+        {
+            "text": "¡Compra ahora mismo antes de que se acabe!",
+            "path": "/home/banner1",
+            "id": "e1"
+        },
+        {
+            "text": "La oferta termina en 2h 15m",
+            "path": "/product/123/timer",
+            "id": "e2"
+        },
+        {
+            "text": "Ends in 7h 16m 2s",
+            "path": "/flash-sale/timer",
+            "id": "e3"
+        },
+        {
+            "text": "Última oportunidad para participar",
+            "path": "/checkout/upsell",
+            "id": "e4"
+        },
+        {
+            "text": "Descuento relámpago finaliza hoy",
+            "path": "/promo/lightning",
+            "id": "e5"
+        },
+        {
+            "text": "No te quedes fuera de esta promoción",
+            "path": "/landing/offer",
+            "id": "e6"
+        },
+        {
+            "text": "Oferta limitada solo por hoy",
+            "path": "/daily-deal",
+            "id": "e7"
+        },
+        {
+            "text": "El envío gratis termina pronto",
+            "path": "/checkout/shipping",
+            "id": "e8"
+        },
+        {
+            "text": "Hurry up! Limited time offer!",
+            "path": "/global/promo",
+            "id": "e9"
+        },
+        {
+            "text": "Flash deals ending soon",
+            "path": "/flashdeals",
+            "id": "e10"
+        },
+        {
+            "text": "Clase de yoga termina en 10 minutos",
+            "path": "/events/yoga",
+            "id": "n1"
+        },
+        {
+            "text": "OFERTA FLASH",
+            "path": "/img1/banner",
+            "id": "e11"
+        },
+        {
+            "text": "finaliza en 1h 20m",
+            "path": "/img1/banner",
+            "id": "e12"
+        },
+        {
+            "text": "PROMOCIÓN relámpago",
+            "path": "/img1/banner2",
+            "id": "e13"
+        },
+        {
+            "text": "solo hasta hoy",
+            "path": "/img1/banner2",
+            "id": "e14"
+        },
+        {
+            "text": "¡No pierdas esta oportunidad única!",
+            "path": "/img2/popup",
+            "id": "e15"
+        },
+        {
+            "text": "Compra ya",
+            "path": "/img2/popup2",
+            "id": "e16"
+        },
+        {
+            "text": "recibe un regalo extra",
+            "path": "/img2/popup2",
+            "id": "n6"
+        },
+        {
+            "text": "Envío gratis",
+            "path": "/img3/timer",
+            "id": "e17"
+        },
+        {
+            "text": "finaliza en 3h",
+            "path": "/img3/timer",
+            "id": "e18"
+        },
+        {
+            "text": "OFERTA",
+            "path": "/img3/banner",
+            "id": "e19"
+        },
+        {
+            "text": "termina en 2 días",
+            "path": "/img3/banner",
+            "id": "e20"
+        },
+        {
+            "text": "Tu sesión caducará en 1 minuto",
+            "path": "/img4/alert",
+            "id": "n7"
+        },
+        {
+            "text": "El examen comienza en 30 segundos",
+            "path": "/img5/exam",
+            "id": "n8"
+        },
+        {
+            "text": "¡Participa ya!",
+            "path": "/img5/banner",
+            "id": "e21"
+        },
+        {
+            "text": "gana descuentos exclusivos",
+            "path": "/img5/banner",
+            "id": "e22"
+        },
+        {
+            "text": "Últimas unidades disponibles",
+            "path": "/img6/stock",
+            "id": "e23"
+        },
+        {
+            "text": "¡Apresúrate!",
+            "path": "/img6/promo",
+            "id": "e24"
+        },
+        {
+            "text": "Promoción válida hasta medianoche",
+            "path": "/img6/promo",
+            "id": "e25"
+        },
+        {
+            "text": "La inscripción al curso cierra en 3 días",
+            "path": "/courses/python",
+            "id": "n2"
+        },
+        {
+            "text": "Su sesión expira en 5 minutos",
+            "path": "/auth/session",
+            "id": "n3"
+        },
+        {
+            "text": "El partido empieza en 15 minutos",
+            "path": "/sports/match",
+            "id": "n4"
+        },
+        {
+            "text": "La batería del dispositivo se agotará en 2h",
+            "path": "/system/alert",
+            "id": "n5"
+        }
+    ]
+}
