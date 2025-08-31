@@ -198,11 +198,6 @@ def check_text_scarcity(text):
         - span: Fragmento del texto correspondiente a una coincidencia.
     """
     doc = NLP(text)
-    for token in doc:
-        print(
-            f"Token: {token.text}, Lemma: {token.lemma_}, POS: {token.pos_}, "
-            f"Tag: {token.tag_}, Dep: {token.dep_}"
-        )
     matches = scarcity_matcher(doc)
     results = []
     for match_id, start, end in matches:

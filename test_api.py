@@ -76,7 +76,6 @@ def test_scarcity(client):
     e_ids = [inst for inst in instances if inst.get("id", "").startswith("e")]
     n_ids = [inst for inst in instances if inst.get("id", "").startswith("n")]
 
-    print(instances)
     for inst in e_ids:
         assert inst.get("has_scarcity") is True, f"ID {inst.get('id')} debería ser detectado como scarcity"
 
