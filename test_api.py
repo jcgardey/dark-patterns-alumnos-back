@@ -3,6 +3,8 @@ import json
 from app import app
 from src.scarcity.types import ScarcityRequestSchema
 from src.urgency.types import UrgencyRequestSchema, UrgencyResponseSchema
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 @pytest.fixture
 def client():
@@ -42,7 +44,7 @@ def test_urgency(client):
 
     response_schema = UrgencyResponseSchema()
     resp = response_schema.load(response.json)
-
+    print(resp)
     assert "urgency_instances" in resp
     assert resp["version"] == valid_data["version"]
     assert isinstance(resp["urgency_instances"], list)
@@ -53,6 +55,7 @@ def test_urgency(client):
             detected_by_id[instance["id"]] = instance["has_urgency"]
 
     for text_obj in valid_data["texts"]:
+        print(text_obj)
         id_ = text_obj.get("id")
         if id_ is None:
             continue

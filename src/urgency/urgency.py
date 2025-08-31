@@ -53,7 +53,8 @@ frases_urgencia = [
     "cupón",
     "mega oferta",
     "última oportunidad",
-    "super oferta"
+    "super oferta",
+    "caduca en"
 ]
 
 

@@ -16,11 +16,51 @@ CORS(app)
 @app.post("/scarcity")
 def detect_scarcity():
     """
-    Detecta patrones de escasez en los datos recibidos mediante una solicitud POST.
-    Utiliza schemas estandarizados para validar y serializar la entrada y salida.
+    Detecta patrones de escasez en los textos recibidos mediante una solicitud POST.
+
+    Este endpoint recibe un JSON que sigue el esquema `ScarcityRequestSchema`, 
+    valida los datos y devuelve un JSON con el resultado siguiendo el esquema `ScarcityResponseSchema`.
+
+    JSON de entrada (ejemplo):
+    {
+        "version": "1.0",
+        "texts": [
+            {
+                "text": "Solo quedan 3 unidades!",
+                "path": "/producto/123",
+                "id": "e1"
+            },
+            {
+                "text": "Oferta limitada",
+                "path": "/promociones/oferta"
+            }
+        ]
+    }
+
+    JSON de salida (ejemplo):
+    {
+        "version": "1.0",
+        "instances": [
+            {
+                "text": "Solo quedan 3 unidades!",
+                "path": "/producto/123",
+                "id": "e1",
+                "has_scarcity": true
+            },
+            {
+                "text": "Oferta limitada",
+                "path": "/promociones/oferta",
+                "has_scarcity": false
+            }
+        ]
+    }
+
+    Retorna:
+        dict: Diccionario serializado que indica para cada texto si se detecta escasez.
     """
     json_data = ScarcityRequestSchema().load(request.get_json())
     return check_text_scarcity_schema(json_data)
+
 
 
 @app.post("/shaming")
@@ -57,8 +97,46 @@ def detect_shaming():
 @app.post("/urgency")
 def detect_urgency():
     """
-    Detecta patrones de urgencia en los datos recibidos mediante una solicitud POST.
-    Utiliza schemas estandarizados para validar y serializar la entrada y salida.
+    Detecta patrones de urgencia en los textos recibidos mediante una solicitud POST.
+
+    Este endpoint recibe un JSON que sigue el esquema `UrgencyRequestSchema`, 
+    valida los datos y devuelve un JSON con el resultado siguiendo el esquema `UrgencyResponseSchema`.
+
+    JSON de entrada (ejemplo):
+    {
+        "version": "1.0",
+        "texts": [
+            {
+                "text": "Compra ahora, promoción válida solo hoy!",
+                "path": "/promociones/dia",
+                "id": "u1"
+            },
+            {
+                "text": "Entrega inmediata disponible"
+            }
+        ]
+    }
+
+    JSON de salida (ejemplo):
+    {
+        "version": "1.0",
+        "urgency_instances": [
+            {
+                "text": "Compra ahora, promoción válida solo hoy!",
+                "path": "/promociones/dia",
+                "id": "u1",
+                "has_urgency": true
+            },
+            {
+                "text": "Entrega inmediata disponible",
+                "has_urgency": false
+            }
+        ]
+    }
+
+    Retorna:
+        dict: Diccionario serializado que indica para cada texto si se detecta urgencia.
     """
     json_data = UrgencyRequestSchema().load(request.get_json())
     return check_text_urgency_schema(json_data)
+
