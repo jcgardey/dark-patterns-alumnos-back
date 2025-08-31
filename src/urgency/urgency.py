@@ -48,7 +48,9 @@ frases_urgencia = [
     "apresúrate",
     "tiempo restante",
     "ofertas por dia",
-    "ofertas por día"
+    "ofertas por día",
+    "cupon",
+    "cupón"
 ]
 
 
@@ -187,11 +189,9 @@ urgency_matcher.add(
         [
             {"LOWER": {"IN": ["la", "esta", "el", "este"]}, "OP": "?"},
             {"LOWER": {"IN": ["oferta", "promoción", "venta", "descuento"]}},
-            {"LEMMA": "válido"}, 
+            {"LEMMA": "válido"},
             {"LOWER": "hasta"},
-            {
-                "LOWER": {"IN": ["medianoche", "mediodia", "hoy", "mañana", "noche"]}
-            },
+            {"LOWER": {"IN": ["medianoche", "mediodia", "hoy", "mañana", "noche"]}},
         ],
     ],
 )
@@ -347,6 +347,16 @@ urgency_matcher.add(
 )
 
 
+urgency_matcher.add(
+    "PERCENTAGE",
+    [[  # 👈 lista extra que envuelve el patrón
+        {"TEXT": {"REGEX": r"^\d{1,2}:\d{2}:\d{2}$"}},  # hora
+        {"TEXT": {"REGEX": r"^-?\d+%$"}},               # porcentaje
+    ]]
+)
+
+
+
 def check_text_urgency(text, path):
     """
     Analiza un texto para detectar patrones de urgencia (no escasez)
@@ -356,6 +366,7 @@ def check_text_urgency(text, path):
     for _ in urgency_matcher(doc):
         return True
     return False
+
 
 def check_text_urgency_schema(data):
     """

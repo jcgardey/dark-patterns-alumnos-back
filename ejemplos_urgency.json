@@ -102,6 +102,16 @@
             "id" : "e20"
         },
         {
+            "text" : "8:23:23 -45%",
+            "path": "/shein",
+            "id" : "e21"
+        },
+        {
+            "text" : "Cupon: 8:23:23",
+            "path": "/tiendamia",
+            "id" : "e22"
+        },
+        {
             "text": "Clase de yoga termina en 10 minutos",
             "path": "/events/yoga",
             "id": "n1"
