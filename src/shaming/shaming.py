@@ -78,23 +78,13 @@ matcher.add("IRONIA_PORQUE_HABRIA_DE", [
 ])
 
 # --- Metáforas ---
-matcher.add("META_IGNORAR_ES_MI", [
+matcher.add("META_VERBOS_ES_MI", [
     [
-        {"LEMMA": "ignorar", "POS": "VERB"},
-        {"POS": "NOUN", "OP": "+"},
-        {"LEMMA": "ser", "POS": "AUX"},
+        {"LEMMA": {"IN": ["ignorar", "vivir", "ser", "estar", "perder", "arruinar", "hacer", "rechazar", "fracasar", "seguir"]}},
+        {"OP": "*"},       # cualquier cosa entre verbo y "es mi"
+        {"LOWER": "es"},
         {"LOWER": "mi"},
-        {"POS": "NOUN"},
-    ]
-])
-
-matcher.add("META_VIVIR_ES_MI", [
-    [
-        {"LEMMA": "vivir", "POS": "VERB"},
-        {"POS": "ADJ", "OP": "?"},
-        {"LEMMA": "ser", "POS": "AUX"},
-        {"LOWER": "mi"},
-        {"POS": "NOUN"},
+        {"OP": "+"}        # al menos un token después de "mi"
     ]
 ])
 
