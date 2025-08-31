@@ -1,6 +1,7 @@
 import pytest
 import json
 from app import app
+from src.scarcity.types import ScarcityRequestSchema
 from src.urgency.types import UrgencyRequestSchema, UrgencyResponseSchema
 
 @pytest.fixture
@@ -42,36 +43,42 @@ def test_urgency(client):
     response_schema = UrgencyResponseSchema()
     resp = response_schema.load(response.json)
 
-    assert "UrgencyInstances" in resp
-    assert resp["Version"] == valid_data["Version"]
-    assert isinstance(resp["UrgencyInstances"], list)
+    assert "urgency_instances" in resp
+    assert resp["version"] == valid_data["version"]
+    assert isinstance(resp["urgency_instances"], list)
 
     detected_by_id = {}
-    for instance in resp["UrgencyInstances"]:
-        for token in valid_data["tokens"]:
-            if instance["text"].strip() == token["text"].strip() and instance["path"] == token["path"]:
-                detected_by_id[token.get("id")] = True
+    for instance in resp["urgency_instances"]:
+        if "id" in instance:
+            detected_by_id[instance["id"]] = instance["has_urgency"]
 
-    for token in valid_data["tokens"]:
-        if token.get("id", "").startswith("e"):
-            assert token["id"] in detected_by_id, f"ID {token['id']} debería ser detectado como urgencia"
-
-    for token in valid_data["tokens"]:
-        if token.get("id", "").startswith("n"):
-            assert token["id"] not in detected_by_id, f"ID {token['id']} no debe ser urgencia"
+    for text_obj in valid_data["texts"]:
+        id_ = text_obj.get("id")
+        if id_ is None:
+            continue
+        if id_.startswith("e"):
+            assert detected_by_id.get(id_) is True, f"ID {id_} debería ser detectado como urgencia"
+        if id_.startswith("n"):
+            assert detected_by_id.get(id_) is False or id_ not in detected_by_id, f"ID {id_} no debe ser urgencia"
 
 
 
 def test_scarcity(client):
-    data = {
-        "Version": "0.1",
-        "tokens": [
-            {"text": "Últimas 3 unidades disponibles", "path": "test/path"},
-            {"text": "Solo quedan 1", "path": "test/path"}
-        ]
-    }
+    with open("ejemplos_scarcity.json", encoding="utf-8") as f:
+        data = json.load(f)
+    data = ScarcityRequestSchema().load(data)
     response = client.post("/scarcity", json=data)
     assert response.status_code == 200
-    assert "ScarcityInstances" in response.json
-    assert response.json["Version"] == "0.1"
-    assert isinstance(response.json["ScarcityInstances"], list)
+    assert "instances" in response.json
+    assert response.json["version"] == "1.0"
+
+    instances = response.json["instances"]
+    e_ids = [inst for inst in instances if inst.get("id", "").startswith("e")]
+    n_ids = [inst for inst in instances if inst.get("id", "").startswith("n")]
+
+    print(instances)
+    for inst in e_ids:
+        assert inst.get("has_scarcity") is True, f"ID {inst.get('id')} debería ser detectado como scarcity"
+
+    for inst in n_ids:
+        assert inst.get("has_scarcity") is False, f"ID {inst.get('id')} no debe ser scarcity"

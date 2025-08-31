@@ -46,6 +46,9 @@ frases_urgencia = [
     "limited offer",
     "time is running out",
     "apresúrate",
+    "tiempo restante",
+    "ofertas por dia",
+    "ofertas por día"
 ]
 
 
@@ -347,26 +350,12 @@ urgency_matcher.add(
 def check_text_urgency(text, path):
     """
     Analiza un texto para detectar patrones de urgencia (no escasez)
-    y devuelve lista de dicts con text, path, pattern.
+    y devuelve True si detecta al menos un patrón.
     """
     doc = NLP(text)
-    print(f"\nAnalizando texto: '{text}'")
-    for token in doc:
-        print(
-            f"Token: {token.text}, POS: {token.pos_}, LEMMA: {token.lemma_}, LOWER: {token.lower_}"
-        )
-    results = []
-    for match_id, start, end in urgency_matcher(doc):
-        span = doc[start:end]
-        results.append(
-            {
-                "text": span.sent.text,
-                "path": path,
-                "pattern": "MATCH:" + NLP.vocab.strings[match_id],
-            }
-        )
-    return results
-
+    for _ in urgency_matcher(doc):
+        return True
+    return False
 
 def check_text_urgency_schema(data):
     """
@@ -374,8 +363,17 @@ def check_text_urgency_schema(data):
     y devuelve la respuesta serializada por UrgencyResponseSchema.
     """
     urgency_instances = []
-    for token in data["tokens"]:
-        urgency_instances.extend(check_text_urgency(token["text"], token["path"]))
+    for current_analized_text in data["texts"]:
+        text = current_analized_text["text"]
+        id_ = current_analized_text.get("id")
+        path = current_analized_text.get("path")
+        has_urgency = check_text_urgency(text, path)
+        instance = {"text": text, "has_urgency": has_urgency}
+        if id_ is not None:
+            instance["id"] = id_
+        if path is not None:
+            instance["path"] = path
+        urgency_instances.append(instance)
     response_schema = UrgencyResponseSchema()
-    response = {"Version": data["Version"], "UrgencyInstances": urgency_instances}
+    response = {"version": data["version"], "urgency_instances": urgency_instances}
     return response_schema.dump(response)
