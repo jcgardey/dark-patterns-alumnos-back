@@ -1,0 +1,50 @@
+{
+    "version": "1.0",
+    "texts": [
+        {
+            "text": "Últimas 3 unidades disponibles",
+            "path": "/producto/123",
+            "id": "e1"
+        },
+        {
+            "text": "Solo quedan 2 en stock",
+            "path": "/producto/456",
+            "id": "e2"
+        },
+        {
+            "text": "¡Aprovecha! Quedan pocas unidades",
+            "path": "/oferta/789",
+            "id": "e3"
+        },
+        {
+            "text": "¡Compra ahora mismo antes de que se acabe!",
+            "path": "/home/banner1",
+            "id": "e4"
+        },
+        {
+            "text": "Solo 3 unidades restantes!",
+            "path": "/producto/789",
+            "id": "e5"
+        },
+        {
+            "text": "Última disponible",
+            "path": "/oferta/789",
+            "id": "e6"
+        },
+        {
+            "text": "Última unidad disponible",
+            "path": "/oferta/789",
+            "id": "e7"
+        },
+        {
+            "text": "Producto disponible para envío inmediato",
+            "path": "/producto/321",
+            "id": "n1"
+        },
+        {
+            "text": "Hay suficiente stock para todos",
+            "path": "/producto/654",
+            "id": "n2"
+        }
+    ]
+}

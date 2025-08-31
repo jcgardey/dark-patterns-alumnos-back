@@ -1,20 +1,20 @@
 import marshmallow
 
-class UrgencyTokenSchema(marshmallow.Schema):
+class UrgencyTextSchema(marshmallow.Schema):
     text = marshmallow.fields.String(required=True, metadata={"description": "Texto a analizar."})
-    path = marshmallow.fields.String(required=True, metadata={"description": "Ruta asociada al texto."})
     id = marshmallow.fields.String(required=False, metadata={"description": "Identificador opcional del texto."})
+    path = marshmallow.fields.String(required=False, metadata={"description": "Ruta opcional del texto."})
 
 class UrgencyRequestSchema(marshmallow.Schema):
-    Version = marshmallow.fields.String(required=True, metadata={"description": "Versión del esquema."})
-    tokens = marshmallow.fields.List(marshmallow.fields.Nested(UrgencyTokenSchema), required=True)
+    version = marshmallow.fields.String(required=True, metadata={"description": "Versión del esquema."})
+    texts = marshmallow.fields.List(marshmallow.fields.Nested(UrgencyTextSchema), required=True)
 
-class UrgencyInstance(marshmallow.Schema):
+class UrgencyInstanceSchema(marshmallow.Schema):
     text = marshmallow.fields.String(required=True)
-    path = marshmallow.fields.String(required=True)
-    pattern = marshmallow.fields.String(required=True)
+    has_urgency = marshmallow.fields.Boolean(required=True)
     id = marshmallow.fields.String(required=False)
 
 class UrgencyResponseSchema(marshmallow.Schema):
-    Version = marshmallow.fields.String(required=True)
-    UrgencyInstances = marshmallow.fields.List(marshmallow.fields.Nested(UrgencyInstance), required=True)
+    version = marshmallow.fields.String(required=True)
+    urgency_instances = marshmallow.fields.List(marshmallow.fields.Nested(UrgencyInstanceSchema), required=True)
+    path = marshmallow.fields.String(required=False, metadata={"description": "Ruta opcional de la respuesta."})

@@ -3,9 +3,10 @@ from flask_cors import CORS
 from src.shaming.shaming import check_text_shaming, check_text_shaming_nopath
 
 from src.urgency.urgency import check_text_urgency
-from src.scarcity.scarcity import check_text_scarcity
+from src.scarcity.scarcity import check_text_scarcity, check_text_scarcity_schema
 from src.urgency.types import UrgencyRequestSchema, UrgencyResponseSchema
 from src.scarcity.types import ScarcityRequestSchema, ScarcityResponseSchema
+from src.urgency.urgency import check_text_urgency_schema
 
 from src.shaming.types import ShamingSchema, ShamingResponse
 
@@ -18,18 +19,8 @@ def detect_scarcity():
     Detecta patrones de escasez en los datos recibidos mediante una solicitud POST.
     Utiliza schemas estandarizados para validar y serializar la entrada y salida.
     """
-    json_data = request.get_json()
-    schema = ScarcityRequestSchema()
-    data = schema.load(json_data)
-    scarcity_instances = []
-    for token in data["tokens"]:
-        scarcity_instances.extend(check_text_scarcity(token["text"], token["path"]))
-    response_schema = ScarcityResponseSchema()
-    response = {
-        "Version": data["Version"],
-        "ScarcityInstances": scarcity_instances
-    }
-    return response_schema.dump(response)
+    json_data = ScarcityRequestSchema().load(request.get_json())
+    return check_text_scarcity_schema(json_data)
 
 
 @app.post("/shaming")
@@ -69,16 +60,5 @@ def detect_urgency():
     Detecta patrones de urgencia en los datos recibidos mediante una solicitud POST.
     Utiliza schemas estandarizados para validar y serializar la entrada y salida.
     """
-    json_data = request.get_json()
-    schema = UrgencyRequestSchema()
-    data = schema.load(json_data)
-    urgency_instances = []
-    for token in data["tokens"]:
-        # Chequeo de urgencia (genuina)
-        urgency_instances.extend(check_text_urgency(token["text"], token["path"]))
-    response_schema = UrgencyResponseSchema()
-    response = {
-        "Version": data["Version"],
-        "UrgencyInstances": urgency_instances
-    }
-    return response_schema.dump(response)
+    json_data = UrgencyRequestSchema().load(request.get_json())
+    return check_text_urgency_schema(json_data)
