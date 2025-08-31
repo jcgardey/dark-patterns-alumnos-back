@@ -92,24 +92,39 @@
             "id": "e18"
         },
         {
-            "text" : "Tiempo restante 8:23:23",
+            "text": "Tiempo restante 8:23:23",
             "path": "/tiendamia",
-            "id" : "e19"
+            "id": "e19"
         },
         {
-            "text" : "Ofertas por día 8:23:23",
+            "text": "Ofertas por día 8:23:23",
             "path": "/tiendamia",
-            "id" : "e20"
+            "id": "e20"
         },
         {
-            "text" : "8:23:23 -45%",
+            "text": "8:23:23 -45%",
             "path": "/shein",
-            "id" : "e21"
+            "id": "e21"
         },
         {
-            "text" : "Cupon: 8:23:23",
-            "path": "/tiendamia",
-            "id" : "e22"
+            "text": "Cupon: 8:23:23",
+            "path": "/shein",
+            "id": "e22"
+        },
+        {
+            "text": "Último dia de 31.4% de descuento",
+            "path": "/shein",
+            "id": "e22"
+        },
+        {
+            "text": "Tiempo limitado",
+            "path": "/shein",
+            "id": "e23"
+        },
+        {
+            "text": "Solo quedan 13 horas para obtener 21% de descuento!",
+            "path": "/shein",
+            "id": "e24"
         },
         {
             "text": "Clase de yoga termina en 10 minutos",

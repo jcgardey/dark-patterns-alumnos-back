@@ -50,7 +50,10 @@ frases_urgencia = [
     "ofertas por dia",
     "ofertas por día",
     "cupon",
-    "cupón"
+    "cupón",
+    "mega oferta",
+    "última oportunidad",
+    "super oferta"
 ]
 
 
@@ -349,12 +352,18 @@ urgency_matcher.add(
 
 urgency_matcher.add(
     "PERCENTAGE",
-    [[  # 👈 lista extra que envuelve el patrón
-        {"TEXT": {"REGEX": r"^\d{1,2}:\d{2}:\d{2}$"}},  # hora
-        {"TEXT": {"REGEX": r"^-?\d+%$"}},               # porcentaje
-    ]]
+    [
+        [  # 👈 lista extra que envuelve el patrón
+            {"TEXT": {"REGEX": r"^\d{1,2}:\d{2}:\d{2}$"}},  # hora
+            {"TEXT": {"REGEX": r"^-?\d+%$"}},  # porcentaje
+        ],
+        [
+            {"TEXT": {"REGEX": r"^\d+(\.\d+)?%$"}},  # número con opcional decimal + %
+            {"LOWER": "de"},
+            {"LOWER": "descuento"},
+        ],
+    ],
 )
-
 
 
 def check_text_urgency(text, path):
