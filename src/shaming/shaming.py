@@ -51,10 +51,11 @@ matcher.add("FP_PERIFRASIS_VOY_A", [
     ]
 ])
 
+# Ser desordenado es lo mío
 matcher.add("FP_ES_LO_MIO", [
     [
         {"LEMMA": {"IN": ["seguir", "ignorar", "ser", "hacer"]}, "POS": {"IN": ["VERB", "AUX"]}},
-        {"OP": "+", "POS": {"NOT_IN": ["PUNCT"]}},  # al menos un token intermedio
+        {"OP": "+", "POS": {"NOT_IN": ["PUNCT"]}},  
         {"LEMMA": "ser", "POS": {"IN": ["AUX", "VERB"]}},
         {"LOWER": "lo"},
         {"LOWER": "mío"},
@@ -62,22 +63,24 @@ matcher.add("FP_ES_LO_MIO", [
 ])
 
 
-
-
 # --- Ironía ---
+# Prefiero no mejorar mi vida
 matcher.add("IRONIA_PREFIERO_NO", [
     [{"LEMMA": "preferir", "POS": "VERB"}, {"LOWER": "no"}, {"POS": "VERB"}],
 ])
 
+# ¿Quién necesita aprender cosas nuevas?
 matcher.add("IRONIA_QUIEN_NECESITA", [
     [{"LOWER": "quién"}, {"LEMMA": "necesitar", "POS": "VERB"}],
 ])
 
+# Por qué habría de intentarlo
 matcher.add("IRONIA_PORQUE_HABRIA_DE", [
     [{"LOWER": "por"}, {"LOWER": "qué"}, {"LEMMA": "haber", "POS": "AUX"}, {"LOWER": "de"}, {"POS": "VERB"}],
 ])
 
 # --- Metáforas ---
+# Ignorar las cosas importantes es mi hobby
 matcher.add("META_VERBOS_ES_MI", [
     [
         {"LEMMA": {"IN": ["ignorar", "vivir", "ser", "estar", "perder", "arruinar", "hacer", "rechazar", "fracasar", "seguir"]}},
