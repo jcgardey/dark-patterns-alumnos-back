@@ -1,4 +1,4 @@
-text ,label
+text,label
 Prefiero seguir ignorante,1
 No quiero suscribirme en este momento,0
 No necesito aprender nada útil,1
@@ -16,15 +16,12 @@ Prefiero quedarme en casa,0
 ¿Quién necesita aprender cosas nuevas?,1
 No estoy interesado en esta oferta,0
 "Claro, me encanta perder oportunidades",1
-Me gusta el café sin azúcar,0
 Prefiero quedarme en la mediocridad,1
 Prefiero no recibir correos promocionales,0
 Ser irresponsable es lo mío,1
 Prefiero otra forma de pago,0
-Me gusta no saber nada,1
 Voy a estudiar para el examen mañana,0
 Prefiero seguir siendo un desastre,1
-Me gusta leer libros de historia,0
 "Sí, soy de los que nunca hacen nada bien",1
 Hoy decido levantarme temprano,0
 Rechazo porque me gusta sufrir,1
@@ -107,7 +104,6 @@ No quiero más correos por el momento,0
 No necesito más información en este momento,0
 "No, la ignorancia es felicidad, ¿verdad?",1
 "Prefiero no saber nada útil, gracias",1
-Me gusta aprender,0
 Acepto,0
 No acepto,0
 Si quiero,0
@@ -116,3 +112,20 @@ Amo ahorrar dinero!,1
 Voy a pagar el precio completo,1
 Seguir sin apoyarnos,1
 Ignorar,0
+Prefiero no recibir correos promocionales, 0
+Prefiero otra forma de pago,0
+No quiero descargar la app,0
+Me gusta el color azul,0
+Prefiero pagar con efectivo, 0
+Me gusta ser feo,1
+Me gusta ser mala persona,1
+Me gusta el ejercicio,0
+Me gusta el café sin azúcar,0
+Me gusta no saber nada,1
+Me gusta leer libros de historia,0
+Me gusta aprender,0
+Me gusta la mayonesa,0
+Me gusta correr,0
+Me gusta tener hambre, 1
+Me gustan los perros,0
+Me gusta estudiar,0

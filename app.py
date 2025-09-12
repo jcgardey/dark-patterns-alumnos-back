@@ -8,7 +8,7 @@ from src.urgency.types import UrgencyRequestSchema, UrgencyResponseSchema
 from src.scarcity.types import ScarcityRequestSchema, ScarcityResponseSchema
 from src.urgency.urgency import check_text_urgency_schema
 
-from src.shaming.types import ShamingSchema, ShamingResponse
+from src.shaming.my_types import ShamingSchema, ShamingResponse
 
 app = Flask(__name__)
 CORS(app)

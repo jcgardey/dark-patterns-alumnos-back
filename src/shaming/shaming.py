@@ -1,40 +1,10 @@
 from config import NLP
 from .matcher import create_matcher
 from .patterns import exceptions, get_negative_adjectives, get_negative_nouns, get_negative_verbs, get_negative_phrases
+import joblib
+clf = joblib.load("shaming_svm.pkl")  # cargamos el modelo entrenado
 
 matcher = create_matcher()
-
-def check_text_shaming(text, path):
-    """
-    Analiza un texto para identificar patrones de "shaming" (avergonzar)
-    basados en el uso de verbos en primera persona y devuelve una lista
-    de oraciones que coinciden con el patrón.
-    Args:
-        text (str): El texto que se analizará en busca de patrones de "shaming".
-        path (str): La ruta del archivo o contexto asociado al texto analizado.
-    Returns:
-        list: Una lista de diccionarios, donde cada diccionario contiene:
-            - "text" (str): La oración que contiene el patrón identificado.
-            - "path" (str): La ruta proporcionada como contexto.
-            - "pattern" (str): El nombre del patrón identificado ("SHAMING").
-        Si no se encuentran coincidencias, devuelve una lista vacía.
-    """
-    doc = NLP(text)
-    matches = matcher(doc)  # matcher global con todos los patrones
-    results = []
-
-    for match_id, start, end in matches:
-        span = doc[start:end]
-        if span.text.lower() in exceptions():
-            continue  # ignorar excepciones definidas
-
-        results.append({
-            "text": span.sent.text,
-            "path": path,
-            "pattern": NLP.vocab.strings[match_id],  # nombre del patrón
-        })
-
-    return results
 
 
 def is_an_exception(text):
@@ -83,64 +53,43 @@ def check_shaming_in_text(text):
 
         rule_name = NLP.vocab.strings[match_id]
 
-        # Para patrones de tipo FP_ES_LO_MIO, revisamos términos negativos
-        if rule_name == "FP_ES_LO_MIO":
-            if contains_negative_terms(span):
-                return rule_name
+        # --- IA: verificar con el clasificador ---
+        vec = span.vector.reshape(1, -1)
+        prediction = clf.predict(vec)[0]
+        confidence = clf.predict_proba(vec)[0][1]
+
+        if prediction == 1:
+            return {"pattern": rule_name, "ml_pred": True, "confidence": confidence}
         else:
-            # Para otros patrones (IRONIA, META, FP_VERB), cualquier match ya es shaming
-            return rule_name
+            return {"pattern": rule_name, "ml_pred": False, "confidence": confidence}
 
     return False
 
 
 
-
 def check_text_shaming_nopath(data):
-    """
-    Analyzes the provided data for instances of shaming language in titles, texts, and button labels.
-    Args:
-        data (dict): A dictionary containing the following keys:
-            - "Path" (str): The path associated with the data.
-            - "Title" (str): The title text to check for shaming.
-            - "Texts" (list of dict): Each dict contains:
-                - "Text" (str): The text to check.
-                - "ID" (str): The identifier for the text.
-            - "Buttons" (list of dict): Each dict contains:
-                - "Label" (str): The button label to check.
-                - "ID" (str): The identifier for the button.
-    Returns:
-        dict: A dictionary with the following structure:
-            - "Version" (str): The version of the response format.
-            - "Title" (dict): Information about the title, including:
-                - The title text.
-                - "HasShaming" (bool): Whether shaming language was detected in the title.
-                - "ID" (str): The identifier "Title".
-            - "ShamingInstances" (list): List of dicts for each text/button label, each containing:
-                - "Text" (str): The text or label checked.
-                - "HasShaming" (bool): Whether shaming language was detected.
-                - "ID" (str): The identifier for the text/button.
-            - "Path" (str): The path from the input data.
-    Note:
-        Requires the function `check_shaming_in_text` to be defined elsewhere, which determines if a given text contains shaming language.
-    """
     response = dict()
-    response["Version"] = "0.2"
+    response["Version"] = "0.3"
     response["ShamingInstances"] = []
     response["Path"] = data["Path"]
 
-    if check_shaming_in_text(data["Title"]):
-        response["Title"] = {"Text": data["Title"], "HasShaming": True, "ID": "Title"}
+    # --- Título ---
+    result = check_shaming_in_text(data["Title"])
+    if result and result["ml_pred"]:
+        response["Title"] = {"Text": data["Title"], "HasShaming": True, "ID": "Title", "Confidence": result["confidence"]}
     else:
         response["Title"] = {"Text": data["Title"], "HasShaming": False, "ID": "Title"}
 
+    # --- Textos ---
     for text in data["Texts"]:
-        if check_shaming_in_text(text["Text"]):
+        result = check_shaming_in_text(text["Text"])
+        if result and result["ml_pred"]:
             response["ShamingInstances"].append(
                 {
                     "Text": text["Text"],
                     "HasShaming": True,
                     "ID": text["ID"],
+                    "Confidence": result["confidence"]
                 }
             )
         else:
@@ -148,17 +97,20 @@ def check_text_shaming_nopath(data):
                 {
                     "Text": text["Text"],
                     "HasShaming": False,
-                    "ID": text["ID"],
+                    "ID": text["ID"]
                 }
             )
 
+    # --- Botones ---
     for button in data["Buttons"]:
-        if check_shaming_in_text(button["Label"]):
+        result = check_shaming_in_text(button["Label"])
+        if result and result["ml_pred"]:
             response["ShamingInstances"].append(
                 {
                     "Text": button["Label"],
                     "HasShaming": True,
                     "ID": button["ID"],
+                    "Confidence": result["confidence"]
                 }
             )
         else:
@@ -166,7 +118,44 @@ def check_text_shaming_nopath(data):
                 {
                     "Text": button["Label"],
                     "HasShaming": False,
-                    "ID": button["ID"],
+                    "ID": button["ID"]
                 }
             )
+
     return response
+
+
+
+
+# Función del modelo viejo
+def check_text_shaming(text, path):
+    """
+    Analiza un texto para identificar patrones de "shaming" 
+    basados en el uso de verbos en primera persona y devuelve una lista
+    de oraciones que coinciden con el patrón.
+    Args:
+        text (str): El texto que se analizará en busca de patrones de "shaming".
+        path (str): La ruta del archivo o contexto asociado al texto analizado.
+    Returns:
+        list: Una lista de diccionarios, donde cada diccionario contiene:
+            - "text" (str): La oración que contiene el patrón identificado.
+            - "path" (str): La ruta proporcionada como contexto.
+            - "pattern" (str): El nombre del patrón identificado ("SHAMING").
+        Si no se encuentran coincidencias, devuelve una lista vacía.
+    """
+    doc = NLP(text)
+    matches = matcher(doc)  # matcher global con todos los patrones
+    results = []
+
+    for match_id, start, end in matches:
+        span = doc[start:end]
+        if span.text.lower() in exceptions():
+            continue  # ignorar excepciones definidas
+
+        results.append({
+            "text": span.sent.text,
+            "path": path,
+            "pattern": NLP.vocab.strings[match_id],  # nombre del patrón
+        })
+
+    return results
