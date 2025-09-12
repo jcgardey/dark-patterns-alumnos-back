@@ -1,96 +1,8 @@
 from config import NLP
-from spacy.matcher import Matcher
+from .matcher import create_matcher
+from .patterns import exceptions, get_negative_adjectives, get_negative_nouns, get_negative_verbs, get_negative_phrases
 
-matcher = Matcher(NLP.vocab)
-
-SHAMING_EXCEPTIONS = ["inicio"]
-NEGATIVE_TERMS = {
-    "verbos": ["ignorar", "mentir", "criticar", "procrastinar", "romper reglas", "cometer errores",
-               "desobedecer", "manipular", "vengar", "envidiar",
-    ],
-    "adjetivos": ["desordenado", "egoísta", "sarcástico", "impuntual", "hiriente", "arrogante",
-                  "grosero", "malhumorado", "perezoso", "despreocupado", "irritable", "intolerante",
-                  "rudo", "desconsiderado", "cínico", "descuidado", "apático", "negligente",
-                  "insensible", "deshonesto", "desagradable", "celoso", "resentido", "irresponsable",
-                  "negativo", "ignorante"
-    ],
-    "sustantivos": ["bromas pesadas", "egoísmo", "irresponsabilidad", "deslealtad",
-                    "bullying", "injusticia", "impaciencia",
-    ],
-    "frases_compuestas": ["promesas que no cumplo", "hacer caso omiso", "hacer lo mínimo posible",
-        "seguir cometiendo los mismos errores", "seguir evitando responsabilidades", "seguir ignorando consejos",
-        "seguir ignorando soluciones fáciles", "a último momento"
-    ]
-}
-ALL_NEGATIVE_TERMS = (
-    NEGATIVE_TERMS["verbos"] +
-    NEGATIVE_TERMS["adjetivos"] +
-    NEGATIVE_TERMS["sustantivos"] +
-    NEGATIVE_TERMS["frases_compuestas"]
-)
-
-# --- Primera persona ---
-matcher.add("FP_VERB", [
-    [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}],
-])
-
-matcher.add("FP_COPULA", [
-    [{"DEP": "cop", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}],
-])
-
-matcher.add("FP_ME_VERB", [
-    [{"POS": "PRON", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}}, {"POS": "VERB"}],
-])
-
-# --- Perífrasis ---
-matcher.add("FP_PERIFRASIS_VOY_A", [
-    [
-        {"DEP": "aux", "POS": "AUX", "MORPH": {"IS_SUPERSET": ["Person=1", "Number=Sing"]}},
-        {"DEP": "mark", "POS": "ADP"},
-        {"POS": "VERB"},
-    ]
-])
-
-# Ser desordenado es lo mío
-matcher.add("FP_ES_LO_MIO", [
-    [
-        {"LEMMA": {"IN": ["seguir", "ignorar", "ser", "hacer"]}, "POS": {"IN": ["VERB", "AUX"]}},
-        {"OP": "+", "POS": {"NOT_IN": ["PUNCT"]}},  
-        {"LEMMA": "ser", "POS": {"IN": ["AUX", "VERB"]}},
-        {"LOWER": "lo"},
-        {"LOWER": "mío"},
-    ]
-])
-
-
-# --- Ironía ---
-# Prefiero no mejorar mi vida
-matcher.add("IRONIA_PREFIERO_NO", [
-    [{"LEMMA": "preferir", "POS": "VERB"}, {"LOWER": "no"}, {"POS": "VERB"}],
-])
-
-# ¿Quién necesita aprender cosas nuevas?
-matcher.add("IRONIA_QUIEN_NECESITA", [
-    [{"LOWER": "quién"}, {"LEMMA": "necesitar", "POS": "VERB"}],
-])
-
-# Por qué habría de intentarlo
-matcher.add("IRONIA_PORQUE_HABRIA_DE", [
-    [{"LOWER": "por"}, {"LOWER": "qué"}, {"LEMMA": "haber", "POS": "AUX"}, {"LOWER": "de"}, {"POS": "VERB"}],
-])
-
-# --- Metáforas ---
-# Ignorar las cosas importantes es mi hobby
-matcher.add("META_VERBOS_ES_MI", [
-    [
-        {"LEMMA": {"IN": ["ignorar", "vivir", "ser", "estar", "perder", "arruinar", "hacer", "rechazar", "fracasar", "seguir"]}},
-        {"OP": "*"},       # cualquier cosa entre verbo y "es mi"
-        {"LOWER": "es"},
-        {"LOWER": "mi"},
-        {"OP": "+"}        # al menos un token después de "mi"
-    ]
-])
-
+matcher = create_matcher()
 
 def check_text_shaming(text, path):
     """
@@ -113,7 +25,7 @@ def check_text_shaming(text, path):
 
     for match_id, start, end in matches:
         span = doc[start:end]
-        if span.text.lower() in SHAMING_EXCEPTIONS:
+        if span.text.lower() in exceptions():
             continue  # ignorar excepciones definidas
 
         results.append({
@@ -133,7 +45,7 @@ def is_an_exception(text):
     Returns:
         bool: True if the text is an exception, False otherwise.
     """
-    return text.lower() in SHAMING_EXCEPTIONS
+    return text.lower() in exceptions()
 
 def contains_negative_terms(span):
     """
@@ -145,11 +57,11 @@ def contains_negative_terms(span):
 
     # Revisar tokens individuales
     for token in span:
-        if token.lemma_.lower() in NEGATIVE_TERMS["verbos"] + NEGATIVE_TERMS["adjetivos"] + NEGATIVE_TERMS["sustantivos"]:
+        if token.lemma_.lower() in get_negative_verbs() + get_negative_adjectives() + get_negative_nouns():
             return True
 
     # Revisar frases compuestas
-    for phrase in NEGATIVE_TERMS["frases_compuestas"]:
+    for phrase in get_negative_phrases():
         # reemplazamos múltiples espacios por uno solo
         phrase_norm = " ".join(phrase.lower().split())
         if phrase_norm in span_text:
