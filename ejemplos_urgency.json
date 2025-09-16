@@ -1,6 +1,6 @@
 {
-    "Version": "1.0",
-    "tokens": [
+    "version": "1.0",
+    "texts": [
         {
             "text": "¡Compra ahora mismo antes de que se acabe!",
             "path": "/home/banner1",
@@ -69,27 +69,62 @@
         {
             "text": "Compra ya",
             "path": "/img2/popup2",
-            "id": "e16"
+            "id": "e14"
         },
         {
             "text": "finaliza en 3h",
             "path": "/img3/timer",
-            "id": "e18"
+            "id": "e15"
         },
         {
             "text": "termina en 2 días",
             "path": "/img3/banner",
-            "id": "e20"
+            "id": "e16"
         },
         {
             "text": "¡Apresúrate!",
             "path": "/img6/promo",
-            "id": "e24"
+            "id": "e17"
         },
         {
             "text": "Promoción válida hasta medianoche",
             "path": "/img6/promo",
-            "id": "e25"
+            "id": "e18"
+        },
+        {
+            "text": "Tiempo restante 8:23:23",
+            "path": "/tiendamia",
+            "id": "e19"
+        },
+        {
+            "text": "Ofertas por día 8:23:23",
+            "path": "/tiendamia",
+            "id": "e20"
+        },
+        {
+            "text": "8:23:23 -45%",
+            "path": "/shein",
+            "id": "e21"
+        },
+        {
+            "text": "Cupon: 8:23:23",
+            "path": "/shein",
+            "id": "e22"
+        },
+        {
+            "text": "Último dia de 31.4% de descuento",
+            "path": "/shein",
+            "id": "e22"
+        },
+        {
+            "text": "Tiempo limitado",
+            "path": "/shein",
+            "id": "e23"
+        },
+        {
+            "text": "Solo quedan 13 horas para obtener 21% de descuento!",
+            "path": "/shein",
+            "id": "e24"
         },
         {
             "text": "Clase de yoga termina en 10 minutos",
