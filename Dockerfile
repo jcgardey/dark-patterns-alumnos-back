@@ -1,4 +1,4 @@
-FROM python:3.10.6-slim
+FROM python:3.12.11-slim
 
 ENV USER=api
 ENV HOME=/usr/src/app
