@@ -54,7 +54,9 @@ frases_urgencia = [
     "mega oferta",
     "última oportunidad",
     "super oferta",
-    "caduca en"
+    "caduca en",
+    "no te las pierdas",
+    "no te lo pierdas"
 ]
 
 
@@ -120,6 +122,11 @@ urgency_matcher.add(
             },
             {"LOWER": {"IN": ["fuera", "atrás", "oportunidad", "pasar", "esto"]}},
         ],
+        [   # variante para "no te los pierdas", "no te lo pierdas", "no te las pierdas"
+            {"LOWER": "no"},
+            {"POS": "PRON", "OP": "*"},
+            {"LEMMA": "perder"},
+        ]
     ],
 )
 
