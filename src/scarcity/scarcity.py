@@ -174,6 +174,27 @@ scarcity_patterns = [
         },
         {"IS_PUNCT": True, "OP": "*"},
     ],
+    # Caso boton temu
+    [   # Caso estricto de ¡Los Ultimos! o simil
+        {"ORTH": {"IN": ["¡", "!"]}, "OP": "?"},            # Signo de apertura opcional
+        {"LOWER": {"IN": ["los", "las"]}},                   # "los" o "las"
+        {"LOWER": {"IN": ["últimos", "ultimos", "últimas", "ultimas"]}}, # Con o sin tilde
+        {"ORTH": {"IN": ["!", "!!", "!!!"]}, "OP": "+"}      # Al menos un signo de exclamación al final
+    ],
+    # Caso Contextual "Los últimos" + contexto de compra/carrito en la misma frase/oración
+    [
+        {"ORTH": "¡", "OP": "?"},                           # '¡' Opcional
+        {"LOWER": {"IN": ["los", "las"]}},                   # 'los' / 'las'
+        {"LOWER": {"IN": ["últimos", "ultimos", "últimas", "ultimas"]}},
+        {"ORTH": "!", "OP": "*"},                           # '!' Opcional/múltiple
+        
+        # Permite entre 0 y 6 tokens de cualquier tipo entre medio 
+        # (cubre: "!", "¡", "Agregar", "al", etc.)
+        {"OP": "{0,6}"},                                    
+        
+        # Términos clave del entorno de compra
+        {"LOWER": {"IN": ["carrito", "bolsa", "cesta", "comprar", "agregar", "añadir"]}}
+    ]
 ]
 scarcity_matcher.add("fake_scarcity", scarcity_patterns)
 
