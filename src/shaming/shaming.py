@@ -15,7 +15,8 @@ def is_an_exception(text):
     Returns:
         bool: True if the text is an exception, False otherwise.
     """
-    return text.lower() in exceptions()
+    clean = text.lower().strip(" .¿?¡!,")
+    return clean in [e.lower() for e in exceptions()]
 
 def contains_negative_terms(span):
     """
@@ -69,7 +70,7 @@ def check_shaming_in_text(text):
 
 def check_text_shaming_nopath(data):
     response = dict()
-    response["Version"] = "0.3"
+    response["Version"] = data.get("Version", "0.2")
     response["ShamingInstances"] = []
     response["Path"] = data["Path"]
 
@@ -125,6 +126,39 @@ def check_text_shaming_nopath(data):
     return response
 
 
+
+
+def check_tokens_shaming(tokens):
+    """
+    Analiza una lista de tokens ({text, path}) usando NLP.pipe en lote.
+    """
+    if not tokens:
+        return []
+    text_strings = [t.get("text", "") for t in tokens]
+    docs = list(NLP.pipe(text_strings, batch_size=50))
+    results = []
+    for token, doc in zip(tokens, docs):
+        path = token.get("path")
+        matches = matcher(doc)
+        for match_id, start, end in matches:
+            span = doc[start:end]
+            sent_span = span.sent
+            if span.text.lower() in exceptions() or is_an_exception(sent_span.text):
+                continue
+
+            # Validar términos negativos o predicción del clasificador ML
+            if not contains_negative_terms(sent_span):
+                vec = sent_span.vector.reshape(1, -1)
+                prediction = clf.predict(vec)[0]
+                if prediction != 1:
+                    continue
+
+            results.append({
+                "text": sent_span.text,
+                "path": path,
+                "pattern": NLP.vocab.strings[match_id],
+            })
+    return results
 
 
 # Función del modelo viejo

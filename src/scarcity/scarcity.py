@@ -174,6 +174,27 @@ scarcity_patterns = [
         },
         {"IS_PUNCT": True, "OP": "*"},
     ],
+    # Caso boton temu
+    [   # Caso estricto de ¡Los Ultimos! o simil
+        {"ORTH": {"IN": ["¡", "!"]}, "OP": "?"},            # Signo de apertura opcional
+        {"LOWER": {"IN": ["los", "las"]}},                   # "los" o "las"
+        {"LOWER": {"IN": ["últimos", "ultimos", "últimas", "ultimas"]}}, # Con o sin tilde
+        {"ORTH": {"IN": ["!", "!!", "!!!"]}, "OP": "+"}      # Al menos un signo de exclamación al final
+    ],
+    # Caso Contextual "Los últimos" + contexto de compra/carrito en la misma frase/oración
+    [
+        {"ORTH": "¡", "OP": "?"},                           # '¡' Opcional
+        {"LOWER": {"IN": ["los", "las"]}},                   # 'los' / 'las'
+        {"LOWER": {"IN": ["últimos", "ultimos", "últimas", "ultimas"]}},
+        {"ORTH": "!", "OP": "*"},                           # '!' Opcional/múltiple
+        
+        # Permite entre 0 y 6 tokens de cualquier tipo entre medio 
+        # (cubre: "!", "¡", "Agregar", "al", etc.)
+        {"OP": "{0,6}"},                                    
+        
+        # Términos clave del entorno de compra
+        {"LOWER": {"IN": ["carrito", "bolsa", "cesta", "comprar", "agregar", "añadir"]}}
+    ]
 ]
 scarcity_matcher.add("fake_scarcity", scarcity_patterns)
 
@@ -212,16 +233,24 @@ def check_text_scarcity_schema(data):
     y devuelve la respuesta serializada por ScarcityResponseSchema.
     Cada instancia indica si el texto tiene escasez (has_scarcity).
     """
+    texts_input = data.get("texts", [])
+    if not texts_input:
+        return ScarcityResponseSchema().dump({"version": data.get("version", "1.0"), "instances": []})
+
+    text_strings = [item["text"] for item in texts_input]
+    docs = list(NLP.pipe(text_strings, batch_size=50))
+
     instances = []
-    for analized_text in data["texts"]:
-        text = analized_text["text"]
-        path = analized_text["path"]
-        id_ = analized_text.get("id")
-        matches = check_text_scarcity(text)
+    for item, doc in zip(texts_input, docs):
+        text = item["text"]
+        path = item.get("path")
+        id_ = item.get("id")
+        matches = scarcity_matcher(doc)
         instance = {"text": text, "path": path, "has_scarcity": bool(matches)}
         if id_ is not None:
             instance["id"] = id_
         instances.append(instance)
+
     response_schema = ScarcityResponseSchema()
-    response = {"version": data["version"], "instances": instances}
+    response = {"version": data.get("version", "1.0"), "instances": instances}
     return response_schema.dump(response)

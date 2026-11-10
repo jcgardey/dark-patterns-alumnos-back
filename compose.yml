@@ -12,11 +12,12 @@ services:
 
     environment:
       PYTHONUNBUFFERED: "1"
-      FLASK_DEBUG: "1"
+      FLASK_DEBUG: "0"
 
     command:
-      - flask
-      - run
-      - --host=0.0.0.0
-      - --port=5000
-      - --debug
+      - gunicorn
+      - --bind=0.0.0.0:5000
+      - --workers=2
+      - --threads=4
+      - --timeout=120
+      - app:app

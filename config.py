@@ -1,8 +1,14 @@
+import os
 import spacy
 
+# Deshabilitar 'ner' ya que los matchers y SVM se basan en sintaxis/tokens/vectores
+# Esto reduce el tiempo de inferencia a más de la mitad y ahorra memoria
+DISABLED_PIPES = ["ner"]
+MODEL_NAME = os.getenv("SPACY_MODEL", "es_core_news_lg")
+
 try:
-    NLP = spacy.load("es_core_news_lg") # O "es_core_news_lg" para más robustez
+    NLP = spacy.load(MODEL_NAME, disable=DISABLED_PIPES)
 except OSError:
-    print("Descargando modelo 'es_core_news_lg'. Esto puede tardar un poco...")
-    spacy.cli.download("es_core_news_lg")
-    NLP = spacy.load("es_core_news_lg")
+    print(f"Descargando modelo '{MODEL_NAME}'. Esto puede tardar un poco...")
+    spacy.cli.download(MODEL_NAME)
+    NLP = spacy.load(MODEL_NAME, disable=DISABLED_PIPES)
