@@ -7,14 +7,14 @@ scarcity_patterns = [
     # Oraciones del tipo "Últimas 3 unidades" o "ultimo disponible"
     [
         {"LOWER": {"FUZZY": {"IN": ["ultima", "ultimo"]}}},
-        {"TEXT": {"REGEX": "^\d*"}, "OP": "?"},
+        {"TEXT": {"REGEX": r"^\d*"}, "OP": "?"},
         {"LOWER": {"FUZZY": {"IN": ["unidade", "disponible"]}}},
     ],
     # Oraciones del tipo "Solo quedan 3"
     [
         {"LOWER": {"FUZZY1": "solo"}},
         {"LOWER": {"FUZZY1": "queda"}},
-        {"TEXT": {"REGEX": "^\d+"}},
+        {"TEXT": {"REGEX": r"^\d+"}},
     ],
     # Oraciones del tipo "Últimas unidades disponibles"
     [
