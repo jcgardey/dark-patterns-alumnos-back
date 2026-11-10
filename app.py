@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_cors import CORS
-from src.shaming.shaming import check_text_shaming, check_text_shaming_nopath
+from src.shaming.shaming import check_text_shaming, check_tokens_shaming, check_text_shaming_nopath
 
 from src.urgency.urgency import check_text_urgency
 from src.scarcity.scarcity import check_text_scarcity, check_text_scarcity_schema
@@ -79,13 +79,10 @@ def detect_shaming():
     Returns:
         list o dict: Resultados del análisis de shaming, dependiendo de la versión del esquema recibido.
     """
-    json_data = request.get_json()
+    json_data = request.get_json() or {}
     if json_data.get("Version", "0.1") != "0.2":
-        sentences = []
-        tokens = request.get_json().get("tokens")
-        for token in tokens:
-            sentences.extend(check_text_shaming(token["text"], token["path"]))
-        return sentences
+        tokens = json_data.get("tokens", [])
+        return check_tokens_shaming(tokens)
     else:
         schema = ShamingSchema()
         data = schema.load(json_data)

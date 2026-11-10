@@ -233,16 +233,24 @@ def check_text_scarcity_schema(data):
     y devuelve la respuesta serializada por ScarcityResponseSchema.
     Cada instancia indica si el texto tiene escasez (has_scarcity).
     """
+    texts_input = data.get("texts", [])
+    if not texts_input:
+        return ScarcityResponseSchema().dump({"version": data.get("version", "1.0"), "instances": []})
+
+    text_strings = [item["text"] for item in texts_input]
+    docs = list(NLP.pipe(text_strings, batch_size=50))
+
     instances = []
-    for analized_text in data["texts"]:
-        text = analized_text["text"]
-        path = analized_text["path"]
-        id_ = analized_text.get("id")
-        matches = check_text_scarcity(text)
+    for item, doc in zip(texts_input, docs):
+        text = item["text"]
+        path = item.get("path")
+        id_ = item.get("id")
+        matches = scarcity_matcher(doc)
         instance = {"text": text, "path": path, "has_scarcity": bool(matches)}
         if id_ is not None:
             instance["id"] = id_
         instances.append(instance)
+
     response_schema = ScarcityResponseSchema()
-    response = {"version": data["version"], "instances": instances}
+    response = {"version": data.get("version", "1.0"), "instances": instances}
     return response_schema.dump(response)

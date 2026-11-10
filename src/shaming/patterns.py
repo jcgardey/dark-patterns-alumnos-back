@@ -3,7 +3,13 @@ from spacy.matcher import Matcher
 
 matcher = Matcher(NLP.vocab)
 
-SHAMING_EXCEPTIONS = ["inicio"]
+SHAMING_EXCEPTIONS = [
+    "inicio",
+    "prefiero pagar en efectivo",
+    "no necesito ayuda extra",
+    "prefiero otra forma de pago",
+    "no necesito soporte por ahora"
+]
 NEGATIVE_TERMS = {
     "verbos": ["ignorar", "mentir", "criticar", "procrastinar", "romper reglas", "cometer errores",
                "desobedecer", "manipular", "vengar", "envidiar",

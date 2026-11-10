@@ -389,19 +389,28 @@ def check_text_urgency_schema(data):
     """
     Recibe un dict validado por UrgencyRequestSchema
     y devuelve la respuesta serializada por UrgencyResponseSchema.
+    Aprovecha NLP.pipe para procesamiento vectorial en lote.
     """
+    texts_input = data.get("texts", [])
+    if not texts_input:
+        return UrgencyResponseSchema().dump({"version": data.get("version", "1.0"), "urgency_instances": []})
+
+    text_strings = [item["text"] for item in texts_input]
+    docs = list(NLP.pipe(text_strings, batch_size=50))
+
     urgency_instances = []
-    for current_analized_text in data["texts"]:
+    for current_analized_text, doc in zip(texts_input, docs):
         text = current_analized_text["text"]
         id_ = current_analized_text.get("id")
         path = current_analized_text.get("path")
-        has_urgency = check_text_urgency(text, path)
+        has_urgency = any(True for _ in urgency_matcher(doc))
         instance = {"text": text, "has_urgency": has_urgency}
         if id_ is not None:
             instance["id"] = id_
         if path is not None:
             instance["path"] = path
         urgency_instances.append(instance)
+
     response_schema = UrgencyResponseSchema()
-    response = {"version": data["version"], "urgency_instances": urgency_instances}
+    response = {"version": data.get("version", "1.0"), "urgency_instances": urgency_instances}
     return response_schema.dump(response)

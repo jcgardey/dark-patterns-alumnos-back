@@ -18,3 +18,4 @@ pip-selfcheck.json
 .cache
 .dotnet
 .bash_history
+.gunicorn/
