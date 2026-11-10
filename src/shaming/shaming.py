@@ -142,10 +142,19 @@ def check_tokens_shaming(tokens):
         matches = matcher(doc)
         for match_id, start, end in matches:
             span = doc[start:end]
-            if span.text.lower() in exceptions():
+            sent_span = span.sent
+            if span.text.lower() in exceptions() or is_an_exception(sent_span.text):
                 continue
+
+            # Validar términos negativos o predicción del clasificador ML
+            if not contains_negative_terms(sent_span):
+                vec = sent_span.vector.reshape(1, -1)
+                prediction = clf.predict(vec)[0]
+                if prediction != 1:
+                    continue
+
             results.append({
-                "text": span.sent.text,
+                "text": sent_span.text,
                 "path": path,
                 "pattern": NLP.vocab.strings[match_id],
             })
