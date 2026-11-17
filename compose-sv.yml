@@ -1,0 +1,39 @@
+services:
+  dark-patterns-back:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    networks:
+      - traefik-public
+
+    ports:
+      - "5000:5000"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.dark-patterns-extension.rule=Host(`dark-patterns-extension.lifia.info.unlp.edu.ar`)"
+      - "traefik.http.routers.dark-patterns-extension.entrypoints=websecure"
+      - "traefik.http.routers.dark-patterns-extension.tls.certresolver=myresolver"
+      # Forward requests to the correct port on the container
+      - "traefik.http.services.dark-patterns-extension.loadbalancer.server.port=5000"
+
+    volumes:
+      - .:/usr/src/app
+
+    environment:
+      PYTHONUNBUFFERED: "1"
+      FLASK_DEBUG: "0"
+
+    command:
+      - gunicorn
+      - --bind=0.0.0.0:5000
+      - --workers=2
+      - --threads=4
+      - --timeout=120
+      - app:app
+
+networks:
+  traefik-public:
+    external: true
